@@ -57,6 +57,7 @@ void RefreshDisplay(char display[][80])
 			refresh();
 		}
 	}
+	move(23,0);refresh();
 }
 void *Display(void *thread_arg)
 {
@@ -80,7 +81,7 @@ void *InputHandler(void *thread_arg)
 {
 	UI *ui = (UI *)thread_arg;
 	bool command_start = false;
-	int position = 0;
+	int position = 3;
 	while (!ui -> exit_program)
 	{
 		char ch = getch();
@@ -96,9 +97,12 @@ void *InputHandler(void *thread_arg)
 			for (int i=0; i<80; i++)
 				ui->display[23][i] = ' ';
 			ui -> update = true;
+			position = 3;
 		}
-		if (ch == ':')
-			command_start = true;
+		if (ch == ':'){
+			ui -> display[23][0] = '-';	ui -> display[23][1] = '>';ui -> display[23][2] = ' ';
+			command_start = true; ui -> update = true;
+		}
 		usleep(10);
 	}
 	pthread_exit(NULL);
@@ -114,7 +118,7 @@ int main()
     cbreak();
     noecho();
     nonl();
-    // curs_set(0);
+    curs_set(0);
     keypad(stdscr, TRUE);
 	int d_thread,i_thread,c_thread;
 	UI ui;
