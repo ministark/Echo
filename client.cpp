@@ -31,23 +31,31 @@ struct UI
 	int type;
 	bool update,exit_program;
 	Notification notification;
-	vector <string> display;
+	char display[24][80];
 	UI()
 	{
 		update = true;
 		exit_program = false;
-		display = vector <string> (24,"~\n");
-		display[23] = "";
+		for (int i=0; i<24; i++)
+		{
+			for (int j=0; j<80; j++)
+				display[i][j] = ' ';
+			if (i != 23)
+				display[i][0] = '~';
+		}
 	}
 };
 
 
-void RefreshDisplay(vector <string> &line)
+void RefreshDisplay(char display[][80])
 {
-	clear();
-    for (int i=0; i<24; i++) {
-		addstr(&line[i][0]);
-		refresh();
+	for (int i=0; i<24; i++)
+	{
+		for (int j=0; j<80; j++)
+		{
+			mvprintw(i,j,"%c",display[i][j]);
+			refresh();
+		}
 	}
 }
 void *Display(void *thread_arg)
@@ -63,16 +71,30 @@ void *Display(void *thread_arg)
 	}
 	pthread_exit(NULL);
 }	
+void ProcessInput(string command)
+{
+
+	return;
+}
 void *InputHandler(void *thread_arg)
 {
 	UI *ui = (UI *)thread_arg;
 	bool command_start = false;
+	int position = 0;
 	while (!ui -> exit_program)
 	{
 		char ch = getch();
-		if (command_start)
+		if (command_start and ch != 13)
 		{	
-			ui->display[23] += ch;
+			ui->display[23][position++] = ch;	
+			ui->update = true;
+		}
+		else if (command_start)
+		{
+			command_start = false;
+			ProcessInput(ui -> display[23]);
+			for (int i=0; i<80; i++)
+				ui->display[23][i] = ' ';
 			ui -> update = true;
 		}
 		if (ch == ':')
@@ -92,6 +114,7 @@ int main()
     cbreak();
     noecho();
     nonl();
+    // curs_set(0);
     keypad(stdscr, TRUE);
 	int d_thread,i_thread,c_thread;
 	UI ui;
