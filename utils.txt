@@ -5,3 +5,8 @@
 \033[A ----------- moves your cursor up one line, but in the same column i.e. not to the start of the line
 
 \r     ----------- brings your cursor to the beginning of the line (r is for rewind) but does not erase anything
+
+
+
+The compilation command
+$ g++ client.cpp -lpthread -lncurses   
