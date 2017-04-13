@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <string.h>
 #include <curses.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -44,6 +45,12 @@ struct TermData
 			if (i != 23)
 				display[i][0] = '~';
 		}
+		strncpy(display[0], "                                ___ ___ _  _  ___   ", 80);
+		strncpy(display[1], "                               | __/ __| || |/ _ \\ ", 80);
+		strncpy(display[2], "                       --------| _| (__| __ | (_) --------", 80);
+		strncpy(display[3], "                               |___\\___|_||_|\\___/ ", 80);
+		memset(display[22],'_',sizeof(display[23]));
+
 	}
 };
 
@@ -77,11 +84,13 @@ void *Display(void *thread_arg)
 
 void ProcessInput(string command)
 {
+	if(command == "echo" ){
 
+	}
 	return;
 }
 
-//Handles the input and then manages the state transitions
+//Handles the input and then manages the state transition
 void *InputHandler(void *thread_arg)
 {
 	TermData *ui = (TermData *)thread_arg;
