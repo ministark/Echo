@@ -26,14 +26,15 @@ struct Home
 {
 	vector <User> user_list;
 };
-struct UI
+struct TermData
 {
 	int type;
 	bool update,exit_program;
 	Notification notification;
 	char display[24][80];
-	UI()
+	TermData()
 	{
+		// Initizaling the terminal for starting page
 		update = true;
 		exit_program = false;
 		for (int i=0; i<24; i++)
@@ -46,7 +47,7 @@ struct UI
 	}
 };
 
-
+//Display thread
 void RefreshDisplay(char display[][80])
 {
 	for (int i=0; i<24; i++)
@@ -61,7 +62,7 @@ void RefreshDisplay(char display[][80])
 }
 void *Display(void *thread_arg)
 {
-	UI *ui = (UI *)thread_arg;
+	TermData *ui = (TermData *)thread_arg;
 	while (!ui -> exit_program)
 	{
 		if (ui -> update)
@@ -72,14 +73,18 @@ void *Display(void *thread_arg)
 	}
 	pthread_exit(NULL);
 }	
+
+
 void ProcessInput(string command)
 {
 
 	return;
 }
+
+//Handles the input and then manages the state transitions
 void *InputHandler(void *thread_arg)
 {
-	UI *ui = (UI *)thread_arg;
+	TermData *ui = (TermData *)thread_arg;
 	bool command_start = false;
 	int position = 3;
 	while (!ui -> exit_program)
@@ -107,21 +112,23 @@ void *InputHandler(void *thread_arg)
 	}
 	pthread_exit(NULL);
 }
+
+//Thread for handling communication and updating the term
 void *CommunicationHandler(void *thread_arg)
 {
-	UI *ui = (UI *)thread_arg;
+	TermData *ui = (TermData *)thread_arg;
 	pthread_exit(NULL);
 }
 int main()
 {
-	initscr();
-    cbreak();
-    noecho();
-    nonl();
-    curs_set(0);
-    keypad(stdscr, TRUE);
+	//Setting up the Terminal and Ncurser
+	initscr();cbreak();
+    noecho();nonl();
+    curs_set(0);keypad(stdscr, TRUE);
+
+    //Creating Thread for Communication, Display and Input
 	int d_thread,i_thread,c_thread;
-	UI ui;
+	TermData ui;
 	pthread_t display_thread,input_thread,communication_thread;
 	d_thread = pthread_create(&display_thread,NULL,Display,(void *)&ui);
 	i_thread = pthread_create(&input_thread,NULL,InputHandler,(void *)&ui);
@@ -131,6 +138,8 @@ int main()
 		endwin();
 		return 0;
 	}
+
+	//Exiting
 	pthread_exit(NULL);
 	endwin();
 }
