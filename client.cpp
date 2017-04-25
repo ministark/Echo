@@ -49,7 +49,7 @@ struct UI
 		if (type == 0)
 		{
 			template_name = "ui/ui_login.txt";
-			cursor_x = 10;
+			cursor_x = 14;
 			cursor_y = 39;
 		}
 		template_file.open(template_name);
@@ -115,9 +115,9 @@ void *InputHandler(void *thread_arg)
 		if (ui->type == 0) 
 		{
 			username_read = password_read = false;
-			if (ui->cursor_x == 10)
+			if (ui->cursor_x == 13)
 				username_read = true;
-			else if (ui->cursor_x == 12)
+			else if (ui->cursor_x == 15)
 				password_read = true;
 			if (ch != ENTER_KEY)
 			{
@@ -149,7 +149,7 @@ void *InputHandler(void *thread_arg)
 			{
 				if (username_read)
 				{
-					ui->cursor_x = 12;
+					ui->cursor_x = 13;
 					ui->cursor_y = 39;
 				}
 				else if (password_read)
@@ -164,11 +164,11 @@ void *InputHandler(void *thread_arg)
 					{
 						username = "";
 						password = "";
-						ui->cursor_x = 10;
+						ui->cursor_x = 13;
 						ui->cursor_y = 39;
-						ui->edit_display(10,39,"                ");
-						ui->edit_display(12,39,"                ");
-						ui->edit_display(16,25,"invalid username or password");
+						ui->edit_display(13,39,"                ");
+						ui->edit_display(15,39,"                ");
+						ui->edit_display(19,25,"invalid username or password");
 						ui->update = true;
  					}
 				}
