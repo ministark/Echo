@@ -1,10 +1,12 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
-#include <curses.h>
+#include <ncurses.h>
 #include <pthread.h>
 #include <unistd.h>
 using namespace std;
+#define ENTER_KEY 13
 struct Message
 {
 	string from,to,timestamp,data;
@@ -28,21 +30,41 @@ struct Home
 };
 struct UI
 {
-	int type;
+	int type,cursor_x,cursor_y;
 	bool update,exit_program;
 	Notification notification;
 	char display[24][80];
 	UI()
 	{
+		type = 0;
 		update = true;
 		exit_program = false;
-		for (int i=0; i<24; i++)
+		load_ui();
+	}
+	void load_ui()
+	{
+		int i = 0;
+		string template_name,template_line;
+		ifstream template_file;
+		if (type == 0)
+		{
+			template_name = "ui/ui_login.txt";
+			cursor_x = 10;
+			cursor_y = 39;
+		}
+		template_file.open(template_name);
+		while (getline(template_file,template_line))
 		{
 			for (int j=0; j<80; j++)
-				display[i][j] = ' ';
-			if (i != 23)
-				display[i][0] = '~';
+				display[i][j] = template_line[j];
+			i++;
 		}
+		template_file.close();
+	}
+	void edit_display(int x,int y,string s)
+	{
+		for (int i=0; i<s.length(); i++)
+			display[x][i+y] = s[i];
 	}
 };
 
@@ -57,20 +79,23 @@ void RefreshDisplay(char display[][80])
 			refresh();
 		}
 	}
-	move(23,0);refresh();
 }
 void *Display(void *thread_arg)
 {
 	UI *ui = (UI *)thread_arg;
-	while (!ui -> exit_program)
+	while (!ui->exit_program)
 	{
-		if (ui -> update)
+		if (ui->update)
 		{
-			RefreshDisplay(ui -> display);
-			ui -> update = false;
+			RefreshDisplay(ui->display);
+			ui->update = false;
 		}
 	}
 	pthread_exit(NULL);
+}
+bool authenticate(string username,string password)
+{
+	return false;
 }	
 void ProcessInput(string command)
 {
@@ -80,28 +105,97 @@ void ProcessInput(string command)
 void *InputHandler(void *thread_arg)
 {
 	UI *ui = (UI *)thread_arg;
-	bool command_start = false;
-	int position = 3;
-	while (!ui -> exit_program)
+	bool command_start = false,username_read,password_read;
+	int position = 3,ch;
+	string username,password;
+	while (!ui->exit_program)
 	{
-		char ch = getch();
-		if (command_start and ch != 13)
-		{	
-			ui->display[23][position++] = ch;	
-			ui->update = true;
-		}
-		else if (command_start)
+		ch = getch();
+		//Login Page
+		if (ui->type == 0) 
 		{
-			command_start = false;
-			ProcessInput(ui -> display[23]);
-			for (int i=0; i<80; i++)
-				ui->display[23][i] = ' ';
-			ui -> update = true;
-			position = 3;
+			username_read = password_read = false;
+			if (ui->cursor_x == 10)
+				username_read = true;
+			else if (ui->cursor_x == 12)
+				password_read = true;
+			if (ch != ENTER_KEY)
+			{
+				if (ch == KEY_BACKSPACE and ui->cursor_y > 39)
+				{
+					ui->cursor_y--;
+					ui->display[ui->cursor_x][ui->cursor_y] = ' ';
+					if (username_read)
+						username.pop_back();
+					else if (password_read)
+						password.pop_back();
+				}
+				else if (ch != KEY_BACKSPACE and ui->cursor_y < 55)
+				{
+					if (username_read)
+					{
+						ui->display[ui->cursor_x][ui->cursor_y++] = ch;
+						username += ch;
+					}
+					else if (password_read)
+					{
+						ui->display[ui->cursor_x][ui->cursor_y++] = '*';
+						password += ch;
+					}
+				}
+				ui->update = true;
+			}
+			else
+			{
+				if (username_read)
+				{
+					ui->cursor_x = 12;
+					ui->cursor_y = 39;
+				}
+				else if (password_read)
+				{
+					if (authenticate(username,password))
+					{
+						ui->type = 1;
+						ui->load_ui();
+						ui->update = true;
+					}
+					else
+					{
+						username = "";
+						password = "";
+						ui->cursor_x = 10;
+						ui->cursor_y = 39;
+						ui->edit_display(10,39,"                ");
+						ui->edit_display(12,39,"                ");
+						ui->edit_display(16,25,"invalid username or password");
+						ui->update = true;
+ 					}
+				}
+			}
 		}
-		if (ch == ':'){
-			ui -> display[23][0] = '-';	ui -> display[23][1] = '>';ui -> display[23][2] = ' ';
-			command_start = true; ui -> update = true;
+		//Home Screen
+		else
+		{
+			char ch = getch();
+			if (command_start and ch != 13)
+			{	
+				ui->display[23][position++] = ch;	
+				ui->update = true;
+			}
+			else if (command_start)
+			{
+				command_start = false;
+				ProcessInput(ui->display[23]);
+				for (int i=0; i<80; i++)
+					ui->display[23][i] = ' ';
+				ui->update = true;
+				position = 3;
+			}
+			if (ch == ':'){
+				ui->display[23][0] = '-';	ui->display[23][1] = '>';ui->display[23][2] = ' ';
+				command_start = true; ui->update = true;
+			}
 		}
 		usleep(10);
 	}
