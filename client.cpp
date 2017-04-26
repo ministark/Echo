@@ -5,6 +5,8 @@
 #include <ncurses.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <chrono>
+#include <thread>
 #include <map>
 using namespace std;
 #define ENTER_KEY 13
@@ -47,6 +49,12 @@ struct UI
 			cursor_x = 13;
 			cursor_y = 39;
 		}
+		else if (type == 1)
+		{
+			template_name = "ui/ui_home.txt";
+			cursor_x = 23;
+			cursor_y = 3;
+		}
 		template_file.open(template_name);
 		while (getline(template_file,template_line))
 		{
@@ -82,7 +90,7 @@ void *Display(void *thread_arg)
 		{
 			if (ui->type == 0) // Login
 			{
-
+                
 			}
 			else if (ui->type == 1) // Home 
 			{
@@ -105,7 +113,7 @@ void *Display(void *thread_arg)
 }
 bool authenticate(string username,string password)
 {
-	return false;
+	return true;
 }	
 void ProcessInput(UI *ui)
 {
@@ -116,7 +124,7 @@ void *InputHandler(void *thread_arg)
 {
 	UI *ui = (UI *)thread_arg;
 	bool command_start = false,username_read,password_read;
-	int position = 3,ch;
+	int ch;
 	string username,password;
 	while (!ui->exit_program)
 	{
@@ -185,22 +193,18 @@ void *InputHandler(void *thread_arg)
 			}
 		}
 		//Home Screen & Chat Windo
-		else if (ui->type == 1)
-		{
-
-		}
 		else
 		{
 			if (ch != ENTER_KEY)
 			{	
-				if (ch == KEY_BACKSPACE and position > 3)
+				if (ch == KEY_BACKSPACE and ui->cursor_y > 3)
 				{
-					ui->display[23][--position] = ' ';
+					ui->display[ui->cursor_x][--ui->cursor_y] = ' ';
 					ui->update = true;
 				}
-				else if (ch != KEY_BACKSPACE)
+				else if (ch != KEY_BACKSPACE and ui->cursor_y < 78)
 				{
-					ui->display[23][position++] = ch;
+					ui->display[ui->cursor_x][ui->cursor_y++] = ch;
 					ui->update = true;
 				}	
 			}
@@ -208,12 +212,12 @@ void *InputHandler(void *thread_arg)
 			{
 				ProcessInput(ui);
 				for (int i=0; i<80; i++)
-					ui->display[23][i] = ' ';
+					ui->display[ui->cursor_x][i] = ' ';
 				ui->update = true;
-				position = 3;
+				ui->cursor_y = 3;
 			}
 		}
-		usleep(100);
+		this_thread::sleep_for(chrono::milliseconds(50));
 	}
 	pthread_exit(NULL);
 }
