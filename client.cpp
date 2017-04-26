@@ -110,6 +110,8 @@ void *Display(void *thread_arg)
 				//ui->edit_display(2,40,"Active Echo : " + string(itoa(ui->number_online)));
 				//ui->edit_display(2,60,"Unread Echo : " + string(itoa(ui->unread_messages)));
 				int line_x = 8;
+				for (int j=8; j<20; j++)
+					ui->edit_display(j,25,"                                            ");
 				for (int j=ui->scroll; j<min(int(ui->user_list.size()),ui->scroll+12); j++)
 				{
 					User user = ui->user_list[j];
