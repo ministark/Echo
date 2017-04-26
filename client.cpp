@@ -15,6 +15,16 @@ using namespace std;
 struct Message
 {
 	string from,to,timestamp,data;
+	Message()
+	{
+
+	}
+	Message(string from,string to,string data)
+	{
+		this->from = from;
+		this->to = to;
+		this->data = data;
+	}
 };
 struct User
 {
@@ -37,8 +47,9 @@ struct UI
 	int type,cursor_x,cursor_y,scroll;
 	bool update,exit_program;
 	vector<User> user_list;
+	map <string,int> user_map;
 	int number_online,unread_messages;
-	User *curr_chat_window; //The person whom we are talking with
+	User receipent; //The person whom we are talking with
 	char display[24][80];
 	UI()
 	{
@@ -126,6 +137,11 @@ void *Display(void *thread_arg)
 			{
 				// Check Notification Bar
 				// Process messages from user->messages and paste it in display
+				int line_x = 8;
+				for (int j=8; j<20; j++)
+					ui->edit_display(j,10,"                                                            ");
+				while (line_x + )
+				for (int j=ui->scroll; j<min(int(ui)))
 			}
 			RefreshDisplay(ui->display);
 			ui->update = false;
@@ -230,8 +246,11 @@ void *InputHandler(void *thread_arg)
 				}	
 				else if (ch == KEY_DOWN)
 				{
-					ui->scroll++;
-					ui->update = true;
+					if (ui->type == 1 and ui->scroll < ui->user_list.size())
+					{
+						ui->scroll++;
+						ui->update = true;
+					}
 				}
 				else if (ch == KEY_UP and ui->scroll > 0)
 				{
@@ -268,15 +287,27 @@ int main()
     keypad(stdscr, TRUE);
 	int d_thread,i_thread,c_thread;
 	UI ui;
-	ifstream test_file;
-	test_file.open("data/online_list.txt");
-	while (!test_file.eof())
+	ifstream testhome_file,testchat_file;
+	testhome_file.open("data/online_list.txt");
+	int k = 0;
+	while (!testhome_file.eof())
 	{
 		string name,status;
-		test_file >> name >> status;
+		testhome_file >> name >> status;
 		ui.user_list.push_back(User(name,status));
+		ui.user_map[name] = k++;
 	}
-	test_file.close();
+	testhome_file.close();
+	testchat_file.open("data/chat_list.txt");
+	while (!testchat_file.eof())
+	{
+		string from,to,data;
+		testchat_file >> from >> to;
+		getline(testchat_file,data);
+		int idx = ui.user_map[from];
+		ui.user_list[idx].message_list.push_back(Message(from,to,data));
+	}
+	testchat_file.close();
 	pthread_t display_thread,input_thread,communication_thread;
 	d_thread = pthread_create(&display_thread,NULL,Display,(void *)&ui);
 	i_thread = pthread_create(&input_thread,NULL,InputHandler,(void *)&ui);
