@@ -10,6 +10,8 @@
 #include <map>
 using namespace std;
 #define ENTER_KEY 13
+#define LOWER_KEY 31
+#define UPPER_KEY 127
 struct Message
 {
 	string from,to,timestamp,data;
@@ -18,13 +20,23 @@ struct User
 {
 	string name,status;
 	vector <Message> message_list;
+	User()
+	{
+		name = "default";
+		status = "offline";
+	}
+	User(string name,string status)
+	{
+		this->name = name;
+		this->status = status;
+	}
 };
 
 struct UI
 {
-	int type,cursor_x,cursor_y;
+	int type,cursor_x,cursor_y,scroll;
 	bool update,exit_program;
-	map<string,User> user_list;
+	vector<User> user_list;
 	int number_online,unread_messages;
 	User *curr_chat_window; //The person whom we are talking with
 	char display[24][80];
@@ -36,6 +48,7 @@ struct UI
 		exit_program = false;
 		number_online = 1;
 		unread_messages = 0;
+		scroll = 0;
 		load_ui();
 	}
 	void load_ui()
@@ -96,7 +109,14 @@ void *Display(void *thread_arg)
 			{
 				//ui->edit_display(2,40,"Active Echo : " + string(itoa(ui->number_online)));
 				//ui->edit_display(2,60,"Unread Echo : " + string(itoa(ui->unread_messages)));
-
+				int line_x = 8;
+				for (int j=ui->scroll; j<min(int(ui->user_list.size()),ui->scroll+12); j++)
+				{
+					User user = ui->user_list[j];
+					ui->edit_display(line_x,25,user.name);
+					ui->edit_display(line_x,50,user.status);
+					line_x++;
+				}
 
 				// Display number of online-user by iterating over map
 			}
@@ -148,7 +168,7 @@ void *InputHandler(void *thread_arg)
 					else if (password_read)
 						password.pop_back();
 				}
-				else if (ch != KEY_BACKSPACE and ui->cursor_y < 55)
+				else if (ch > LOWER_KEY and ch < UPPER_KEY and ui->cursor_y < 55)
 				{
 					if (username_read)
 					{
@@ -186,13 +206,12 @@ void *InputHandler(void *thread_arg)
 						ui->cursor_y = 39;
 						ui->edit_display(13,39,"                ");
 						ui->edit_display(15,39,"                ");
-						ui->edit_display(19,25,"invalid username or password");
 						ui->update = true;
  					}
 				}
 			}
 		}
-		//Home Screen & Chat Windo
+		//Home Screen & Chat Window
 		else
 		{
 			if (ch != ENTER_KEY)
@@ -202,17 +221,28 @@ void *InputHandler(void *thread_arg)
 					ui->display[ui->cursor_x][--ui->cursor_y] = ' ';
 					ui->update = true;
 				}
-				else if (ch != KEY_BACKSPACE and ui->cursor_y < 78)
+				else if (ch > LOWER_KEY and ch < UPPER_KEY and ui->cursor_y < 78)
 				{
 					ui->display[ui->cursor_x][ui->cursor_y++] = ch;
 					ui->update = true;
 				}	
+				else if (ch == KEY_DOWN)
+				{
+					ui->scroll++;
+					ui->update = true;
+				}
+				else if (ch == KEY_UP and ui->scroll > 0)
+				{
+					ui->scroll--;
+					ui->update = true;
+				}
 			}
 			else
 			{
 				ProcessInput(ui);
 				for (int i=0; i<80; i++)
 					ui->display[ui->cursor_x][i] = ' ';
+				ui->edit_display(ui->cursor_x,0,"->");
 				ui->update = true;
 				ui->cursor_y = 3;
 			}
@@ -236,6 +266,15 @@ int main()
     keypad(stdscr, TRUE);
 	int d_thread,i_thread,c_thread;
 	UI ui;
+	ifstream test_file;
+	test_file.open("data/online_list.txt");
+	while (!test_file.eof())
+	{
+		string name,status;
+		test_file >> name >> status;
+		ui.user_list.push_back(User(name,status));
+	}
+	test_file.close();
 	pthread_t display_thread,input_thread,communication_thread;
 	d_thread = pthread_create(&display_thread,NULL,Display,(void *)&ui);
 	i_thread = pthread_create(&input_thread,NULL,InputHandler,(void *)&ui);
