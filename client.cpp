@@ -7,12 +7,19 @@
 #include <unistd.h>
 #include <chrono>
 #include <thread>
+#include <mutex>
 #include <map>
 #include "utils.h"
 using namespace std;
+
 #define ENTER_KEY 13
 #define LOWER_KEY 31
 #define UPPER_KEY 127
+#define SERVER_PORT "9034"  // port we're listening on
+#define MAXDATASIZE 256 	// max number of bytes we can get at once 
+#define LISTEN_PORT "9033"	//local port for thread intercommunication
+
+mutex mtx_user_list,mtx_display,mtx_comm;
 struct Chat_message{ // peer to peer messages
 	int time_stamp;
 	string receiver, sender;
@@ -89,6 +96,7 @@ struct UI
 	vector<User> user_list;
 	map <string,int> user_map;
 	int number_online,unread_messages;
+	int my_sock_fd,listener_fd;
 	User receipent; //The person whom we are talking with
 	char display[24][80];
 	UI()
@@ -146,9 +154,11 @@ void RefreshDisplay(char display[][80])
 }
 void *Display(void *thread_arg)
 {
+	this_thread::sleep_for(chrono::milliseconds(5000));
 	UI *ui = (UI *)thread_arg;
 	while (!ui->exit_program)
 	{
+		//mtx_display.lock();
 		if (ui->update)
 		{
 			if (ui->type == 0) // Login
@@ -159,10 +169,10 @@ void *Display(void *thread_arg)
 			{
 				//ui->edit_display(2,40,"Active Echo : " + string(itoa(ui->number_online)));
 				//ui->edit_display(2,60,"Unread Echo : " + string(itoa(ui->unread_messages)));
-				int line_x = 8;
+				int line_x = 8,list_size = ui->user_list.size();
 				for (int j=8; j<20; j++)
 					ui->edit_display(j,25,"                                            ");
-				for (int j=ui->scroll; j<min(int(ui->user_list.size()),ui->scroll+12); j++)
+				for (int j=ui->scroll; j<min(int(list_size),ui->scroll+12); j++)
 				{
 					User user = ui->user_list[j];
 					ui->edit_display(line_x,25,user.name);
@@ -176,10 +186,12 @@ void *Display(void *thread_arg)
 			{
 				// Check Notification Bar
 				// Process messages from user->messages and paste it in display
+
 			}
 			RefreshDisplay(ui->display);
 			ui->update = false;
 		}
+		//mtx_display.unlock();
 	}
 	pthread_exit(NULL);
 }
@@ -194,13 +206,54 @@ void ProcessInput(UI *ui)
 }
 void *InputHandler(void *thread_arg)
 {
+	this_thread::sleep_for(chrono::milliseconds(5000));
+	/*******Connecting to actual server*********/
+			ofstream output_file("client_comm_log.txt");
+			struct addrinfo hints1, *servinfo1, *p1;
+			memset(&hints1, 0, sizeof hints1);
+			hints1.ai_family = AF_INET;
+			hints1.ai_socktype = SOCK_STREAM;
+			
+			int tmp = getaddrinfo("localhost", LISTEN_PORT, &hints1, &servinfo1);
+			if (tmp != 0){
+				output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
+				return NULL;
+			}
+			
+			int self_client_sock_fd;  
+			for(p1 = servinfo1; p1 != NULL; p1 = p1->ai_next){ // loop through all the results and connect to the first we can
+				if ((self_client_sock_fd = socket(p1->ai_family, p1->ai_socktype,p1->ai_protocol)) == -1) {
+					output_file << "client : socket " << LISTEN_PORT << endl;
+					// perror("client: socket");
+					continue;
+				}
+
+				if (connect(self_client_sock_fd, p1->ai_addr, p1->ai_addrlen) == -1) {
+					output_file << "client: connect" << LISTEN_PORT << endl;
+					// perror("client: connect");
+					close(self_client_sock_fd);
+					continue;
+				}
+				break;
+			}
+			if (p1 == NULL) {
+				output_file << "client: failed to connect " << endl;
+				return NULL;
+			}	
+			freeaddrinfo(servinfo1);
+			// char serverIP[INET6_ADDRSTRLEN];
+			// inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), serverIP, sizeof serverIP);
+			// printf("client: connecting to %s\n", serverIP);
+	/*******Connected*********/
 	UI *ui = (UI *)thread_arg;
 	bool command_start = false,username_read,password_read;
 	int ch;
 	string username,password;
 	while (!ui->exit_program)
 	{
+		//mtx_display.lock();
 		ch = getch();
+		
 		//Login Page
 		if (ui->type == 0) 
 		{
@@ -262,6 +315,7 @@ void *InputHandler(void *thread_arg)
  					}
 				}
 			}
+
 		}
 		//Home Screen & Chat Window
 		else
@@ -302,6 +356,7 @@ void *InputHandler(void *thread_arg)
 				ui->cursor_y = 3;
 			}
 		}
+		//mtx_display.unlock();
 		this_thread::sleep_for(chrono::milliseconds(50));
 	}
 	pthread_exit(NULL);
@@ -309,6 +364,83 @@ void *InputHandler(void *thread_arg)
 void *CommunicationHandler(void *thread_arg)
 {
 	UI *ui = (UI *)thread_arg;
+	int self_sock_id, my_sock_fd = ui->my_sock_fd,listener_fd = ui->listener_fd;  // newly accepted socket descriptor
+	
+	fd_set master_fds;    	// master file descriptor list
+    fd_set read_fds;  		// read fds
+    int fd_max = my_sock_fd;
+
+    FD_ZERO(&master_fds);   // clear the master and read sets
+    FD_ZERO(&read_fds);
+
+    FD_SET(my_sock_fd, &master_fds);
+
+	struct sockaddr self_address;		// client address
+	socklen_t addr_len = sizeof self_address;	// client address length
+	char selfIP[INET_ADDRSTRLEN];
+	
+	self_sock_id = accept(listener_fd, &self_address, &addr_len);
+	if (self_sock_id == -1){
+		cout << "XXX" << endl;
+	    perror("accept"); 
+	}
+	else{
+	    FD_SET(self_sock_id, &master_fds); // add to master set
+	    fd_max = max(self_sock_id,fd_max); // Keep track of maxfd
+	    // inet_ntop(self_address.sa_family, &((struct sockaddr_in*)&self_address)->sin_addr,selfIP, INET_ADDRSTRLEN);
+		close(listener_fd);
+	}
+
+    while(true){// main loop 
+        read_fds = master_fds; // copy it
+        if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set so no check for 0	
+            perror("select");
+            exit(4);
+        }
+        if (FD_ISSET(self_sock_id, &read_fds)){ // Data from other thread
+        	int nbytes = 0;
+           	string data = read_full(self_sock_id,nbytes);
+           	if(nbytes == 0){
+           		close(self_sock_id);	// close the curr socket 
+		    	FD_CLR(self_sock_id, &master_fds); // remove from master set
+		    	// printf("selectserver: socket %d hung up\n", self_sock_id);
+           	}
+           	else if(nbytes < 0)
+       		{
+           		// perror("recv");
+       		}
+            else{
+         		char *to_send = new char[data.length() + 1];
+				strcpy(to_send, data.c_str());                				
+ 				if (send(my_sock_fd, to_send, data.length() + 1, 0) == -1) {
+                    // perror("send");
+                }
+                delete [] to_send;
+         	}
+        }
+        else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
+        	int nbytes = 0;
+           	string data = read_full(listener_fd,nbytes);
+           	if(nbytes == 0){
+           		close(my_sock_fd);	// close the curr socket 
+		    	FD_CLR(my_sock_fd, &master_fds); // remove from master set
+		    	// printf("selectserver: socket %d hung up\n", my_sock_fd);
+           	}
+           	else if(nbytes < 0)
+           	{
+           		// perror("recv");
+           	}
+            else{ //Process received data	
+         		Json::Value rec_msg = s2json(data);
+         		if(rec_msg["type"].asInt() == 1){ // Chat_message
+         			Chat_message msg(rec_msg);
+         		}
+	         	else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3 or rec_msg["type"].asInt() == 4){
+	         		Auth_message msg(rec_msg);
+	         	} 	
+         	}
+        }
+    }
 	pthread_exit(NULL);
 }
 int main()
@@ -324,6 +456,53 @@ int main()
 	ifstream testhome_file,testchat_file;
 	testhome_file.open("data/online_list.txt");
 	int k = 0;
+	/*******Connecting to actual server*********/
+		ofstream output_file("client_comm_log.txt");
+		struct addrinfo hints, *servinfo, *p;
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		
+		int tmp = getaddrinfo("localhost", SERVER_PORT, &hints, &servinfo);
+		if (tmp != 0){
+			output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
+			return 0;
+		}
+		
+		int my_sock_fd;  
+		for(p = servinfo; p != NULL; p = p->ai_next){ // loop through all the results and connect to the first we can
+			if ((my_sock_fd = socket(p->ai_family, p->ai_socktype,p->ai_protocol)) == -1) {
+				output_file << "client : socket " << SERVER_PORT << endl;
+				// perror("client: socket");
+				continue;
+			}
+
+			if (connect(my_sock_fd, p->ai_addr, p->ai_addrlen) == -1) {
+				output_file << "client: connect" << SERVER_PORT << endl;
+				// perror("client: connect");
+				close(my_sock_fd);
+				continue;
+			}
+
+			break;
+		}
+		if (p == NULL) {
+			output_file << "client: failed to connect " << endl;
+			return 0;
+		}	
+		freeaddrinfo(servinfo);		 // all done with this structure
+		// char serverIP[INET6_ADDRSTRLEN];
+		// inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), serverIP, sizeof serverIP);
+		// printf("client: connecting to %s\n", serverIP);
+	/*******Connected********my_sock_fd*/
+
+	/*******Complete the connection for other thread*********/
+		int error_code = 0;
+		int listener_fd = get_listner(LISTEN_PORT,error_code);
+		if(listener_fd == -1)
+			exit(error_code);	
+	/*******Completed********listener_fd*/
+	
 	while (!testhome_file.eof())
 	{
 		string name,status;
@@ -332,6 +511,7 @@ int main()
 		ui.user_map[name] = k++;
 	}
 	testhome_file.close();
+	ui.my_sock_fd = my_sock_fd;ui.listener_fd = listener_fd;
 	pthread_t display_thread,input_thread,communication_thread;
 	d_thread = pthread_create(&display_thread,NULL,Display,(void *)&ui);
 	i_thread = pthread_create(&input_thread,NULL,InputHandler,(void *)&ui);

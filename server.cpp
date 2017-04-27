@@ -132,12 +132,12 @@ int main(){
 	fd_set master_fds;    	// master file descriptor list
     fd_set read_fds;  		// read fds
     int fd_max = listener_fd;  // maximum file descriptor number
-
+    
     FD_ZERO(&master_fds);   // clear the master and read sets
     FD_ZERO(&read_fds);
 
     FD_SET(listener_fd, &master_fds);
-	
+	printf("harsh\n");
     while(true){// main loop 
         read_fds = master_fds; // copy it
         if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set so no check for 0 
