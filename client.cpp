@@ -8,28 +8,68 @@
 #include <chrono>
 #include <thread>
 #include <map>
+#include "utils.h"
 using namespace std;
 #define ENTER_KEY 13
 #define LOWER_KEY 31
 #define UPPER_KEY 127
-struct Message
-{
-	string from,to,timestamp,data;
-	Message()
-	{
-
+struct Chat_message{ // peer to peer messages
+	int time_stamp;
+	string receiver, sender;
+	string data;
+	Chat_message(){}
+	Chat_message(string username, int time, string rec){
+		time_stamp = time;
+		sender = username;
+		receiver = rec;
 	}
-	Message(string from,string to,string data)
-	{
-		this->from = from;
-		this->to = to;
-		this->data = data;
+	Chat_message(Json::Value root){
+		time_stamp = root["time_stamp"].asInt();
+		receiver = root["receiver"].asString();
+		sender = root["sender"].asString();
+		data = root["data"].asString();
+	}
+	string to_str(){
+		string s = "{\n";
+		s+= assign("type",1) + ",\n" +
+			assign("time_stamp",time_stamp) + ",\n" +
+			assign("receiver",receiver) + ",\n" +
+			assign("sender",sender) + ",\n" +
+			assign("data",data) + "\n}";
+		return s;
+	}
+};
+	
+struct Auth_message{ // all message types sent by server
+	int time_stamp;
+	bool status;
+	string sender, password;
+	Auth_message(string username, int time, string passwd = "NULL"){
+		time_stamp = time;
+		sender = username;
+		password = passwd;
+	}
+	Auth_message(Json::Value root){
+		time_stamp = root["time_stamp"].asInt();
+		status = root["status"].asBool();
+	}
+	string to_str(int type){
+		string s = "{\n";
+		s += assign("type",type) + ",\n" +
+			assign("time_stamp",time_stamp) + ",\n" +
+			assign("sender",sender);
+			
+		if(type == 2) // LOGIN
+			s+=  ",\n" + assign("password",password);		
+
+		s+= "\n}";
+		return s;
 	}
 };
 struct User
 {
 	string name,status;
-	vector <Message> message_list;
+	vector <Chat_message> message_list;
 	User()
 	{
 		name = "default";
@@ -53,7 +93,6 @@ struct UI
 	char display[24][80];
 	UI()
 	{
-		curr_chat_window = NULL;
 		type = 0;
 		update = true;
 		exit_program = false;
@@ -137,11 +176,6 @@ void *Display(void *thread_arg)
 			{
 				// Check Notification Bar
 				// Process messages from user->messages and paste it in display
-				int line_x = 8;
-				for (int j=8; j<20; j++)
-					ui->edit_display(j,10,"                                                            ");
-				while (line_x + )
-				for (int j=ui->scroll; j<min(int(ui)))
 			}
 			RefreshDisplay(ui->display);
 			ui->update = false;
@@ -298,16 +332,6 @@ int main()
 		ui.user_map[name] = k++;
 	}
 	testhome_file.close();
-	testchat_file.open("data/chat_list.txt");
-	while (!testchat_file.eof())
-	{
-		string from,to,data;
-		testchat_file >> from >> to;
-		getline(testchat_file,data);
-		int idx = ui.user_map[from];
-		ui.user_list[idx].message_list.push_back(Message(from,to,data));
-	}
-	testchat_file.close();
 	pthread_t display_thread,input_thread,communication_thread;
 	d_thread = pthread_create(&display_thread,NULL,Display,(void *)&ui);
 	i_thread = pthread_create(&input_thread,NULL,InputHandler,(void *)&ui);
