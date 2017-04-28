@@ -116,7 +116,8 @@ bool authenticate(string username,string password){
     	if(local_it->first == username and local_it->second.password == password)
     		return true;
 	}
-}	
+}
+	
 int main(){
 	User_data u1,u2,u3,u4;
 	user_map["Rishabh"] = u1;
@@ -145,15 +146,14 @@ int main(){
             exit(4);
         }
 
-    	struct sockaddr client_address;		// client address
-    	socklen_t addr_len = sizeof client_address;	// client address length
-    	int new_fd;        							// newly accepted socket descriptor
-    	char clientIP[INET_ADDRSTRLEN];
-
-        for(int i = 0; i <= fd_max; i++){// run through the existing connections looking for data to read 
+    	for(int i = 0; i <= fd_max; i++){// run through the existing connections looking for data to read 
             if (FD_ISSET(i, &read_fds)){ // we got one!!
                 if (i == listener_fd){ // new connection					
-					new_fd = accept(listener_fd, &client_address, &addr_len);
+					
+					struct sockaddr client_address;		// client address
+			    	socklen_t addr_len = sizeof client_address;	// client address length
+			    	char clientIP[INET_ADDRSTRLEN];
+					int new_fd = accept(listener_fd, &client_address, &addr_len); // New socket descriptor
 					if (new_fd == -1)
                         perror("accept"); 
                     else{
