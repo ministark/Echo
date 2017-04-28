@@ -7,6 +7,7 @@
 
 struct Chat_message{ // peer to peer messages
 	int time_stamp;
+	int type;
 	string receiver, sender;
 	string data;
 	Chat_message(){}
@@ -15,10 +16,12 @@ struct Chat_message{ // peer to peer messages
 		receiver = root["receiver"].asString();
 		sender = root["sender"].asString();
 		data = root["data"].asString();
+		type = root["type"].asInt();
+	
 	}
 	string to_str(){
 		string s = "{\n";
-		s+= assign("type",1) + ",\n" +
+		s+= assign("type",type) + ",\n" +
 			assign("time_stamp",time_stamp) + ",\n" +
 			assign("receiver",receiver) + ",\n" +
 			assign("sender",sender) + ",\n" +
@@ -39,6 +42,9 @@ struct User_data{
 	
 typedef unordered_map<string,User_data> t_user_map;
 t_user_map user_map;
+typedef unordered_map<string,set<string> > t_group_map;
+t_group_map group_map;
+
 set<string>online_users;
 
 struct Auth_message{ // all message types sent by server
@@ -117,7 +123,7 @@ bool authenticate(string username,string password){
     		return true;
 	}
 }
-	
+
 int main(){
 	User_data u1,u2,u3,u4;
 	user_map["Rishabh"] = u1;
@@ -145,7 +151,6 @@ int main(){
             perror("select");
             exit(4);
         }
-
     	for(int i = 0; i <= fd_max; i++){// run through the existing connections looking for data to read 
             if (FD_ISSET(i, &read_fds)){ // we got one!!
                 if (i == listener_fd){ // new connection					
@@ -227,6 +232,21 @@ int main(){
 		                        perror("send");
 		                    }
 							delete [] to_send;
+		                }
+		                else if(rec_msg["type"].asInt() == 5){
+		                	Chat_message msg(rec_msg);
+	             			for (auto it = group_map[msg.receiver].begin(); it!=group_map[msg.receiver].end(); ++it){
+	             				if(online_users.count(*it) == 0)// Receiver Offline
+	             					user_map[*it].unread_list.push_back(msg);
+		             			else{// Receiver Online
+		             				char *to_send = new char[data.length() + 1];
+									strcpy(to_send, data.c_str());                				
+		             				if (send(user_map[*it].socket_id, to_send, data.length() + 1, 0) == -1) {
+				                        perror("send");
+				                    }
+				                    delete [] to_send;
+								}
+							}
 		                }
 		            }   
                 }

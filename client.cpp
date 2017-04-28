@@ -22,23 +22,26 @@ using namespace std;
 mutex mtx_user_list,mtx_display,mtx_comm;
 struct Chat_message{ // peer to peer messages
 	int time_stamp;
+	int type;
 	string receiver, sender;
 	string data;
 	Chat_message(){}
-	Chat_message(string username, int time, string rec){
+	Chat_message(string username, int time, string rec, int t){
 		time_stamp = time;
 		sender = username;
 		receiver = rec;
+		type = t;
 	}
 	Chat_message(Json::Value root){
 		time_stamp = root["time_stamp"].asInt();
 		receiver = root["receiver"].asString();
 		sender = root["sender"].asString();
 		data = root["data"].asString();
+		type = root["type"].asInt();
 	}
 	string to_str(){
 		string s = "{\n";
-		s+= assign("type",1) + ",\n" +
+		s+= assign("type",type) + ",\n" +
 			assign("time_stamp",time_stamp) + ",\n" +
 			assign("receiver",receiver) + ",\n" +
 			assign("sender",sender) + ",\n" +
@@ -73,24 +76,21 @@ struct Auth_message{ // all message types sent by server
 		return s;
 	}
 };
-struct User
-{
+
+struct User{
 	string name,status;
 	vector <Chat_message> message_list;
-	User()
-	{
+	User(){
 		name = "default";
 		status = "offline";
 	}
-	User(string name,string status)
-	{
+	User(string name,string status){
 		this->name = name;
 		this->status = status;
 	}
 };
 
-struct UI
-{
+struct UI{
 	int type,cursor_x,cursor_y,scroll;
 	bool update,exit_program;
 	vector<User> user_list;
@@ -99,8 +99,7 @@ struct UI
 	int my_sock_fd,listener_fd;
 	User receipent; //The person whom we are talking with
 	char display[24][80];
-	UI()
-	{
+	UI(){
 		type = 0;
 		update = true;
 		exit_program = false;
@@ -109,49 +108,43 @@ struct UI
 		scroll = 0;
 		load_ui();
 	}
-	void load_ui()
-	{
+	void load_ui(){
 		int i = 0;
 		string template_name,template_line;
 		ifstream template_file;
-		if (type == 0)
-		{
+		if (type == 0){
 			template_name = "ui/ui_login.txt";
 			cursor_x = 13;
 			cursor_y = 39;
 		}
-		else if (type == 1)
-		{
+		else if (type == 1){
 			template_name = "ui/ui_home.txt";
 			cursor_x = 23;
 			cursor_y = 3;
 		}
 		template_file.open(template_name);
-		while (getline(template_file,template_line))
-		{
+		while (getline(template_file,template_line)){
 			for (int j=0; j<80; j++)
 				display[i][j] = template_line[j];
 			i++;
 		}
 		template_file.close();
 	}
-	void edit_display(int x,int y,string s)
-	{
+	void edit_display(int x,int y,string s){
 		for (int i=0; i<s.length(); i++)
 			display[x][i+y] = s[i];
 	}
 };
-void RefreshDisplay(char display[][80])
-{
-	for (int i=0; i<24; i++)
-	{
-		for (int j=0; j<80; j++)
-		{
+
+void RefreshDisplay(char display[][80]){
+	for (int i=0; i<24; i++){
+		for (int j=0; j<80; j++){
 			mvprintw(i,j,"%c",display[i][j]);
 			refresh();
 		}
 	}
 }
+
 void *Display(void *thread_arg)
 {
 	this_thread::sleep_for(chrono::milliseconds(5000));
@@ -195,15 +188,17 @@ void *Display(void *thread_arg)
 	}
 	pthread_exit(NULL);
 }
+
 bool authenticate(string username,string password)
 {
 	return true;
 }	
+
 void ProcessInput(UI *ui)
 {
-
 	return;
 }
+
 void *InputHandler(void *thread_arg)
 {
 	this_thread::sleep_for(chrono::milliseconds(5000));
