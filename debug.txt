@@ -6,8 +6,7 @@ receiving data from server
 "unread_list":[
 	],
 "online_users":[
-	"1":"Rksha",
-	"2":"messi",
-	"3":"rishabah"
+	"1":"bharatk",
+	"2":"messi"
 	]
 }

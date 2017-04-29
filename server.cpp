@@ -1,5 +1,5 @@
 #include "serverutils.h"
-
+#include <fstream>
 #include <unordered_map>
 
 #define LISTEN_PORT "9034"   // port we're listening on
@@ -101,11 +101,18 @@ bool authenticate(string username,string password){
 }
 
 int main(){
-	User_data u1,u2,u3,u4;
-	user_map["Rishabh"] = u1;
-	user_map["Sourabh"] = u2;
-	user_map["Harsh"] = u3;
-	user_map["messi"] = u4;
+
+	User_data u[100];
+	int k =0;
+	ifstream users_file;
+	users_file.open("data/user_list.txt");
+	while (!users_file.eof())
+	{
+		string name;
+		users_file >> name;
+		user_map[name] = u[k++];
+	}
+	users_file.close();
 
 	int error_code = 0;
 	int listener_fd = get_listner(LISTEN_PORT,error_code);
