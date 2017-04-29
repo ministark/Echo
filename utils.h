@@ -33,6 +33,7 @@ struct Chat_message{ // peer to peer messages
 	string data;
 	Chat_message();
 	Chat_message(Json::Value root);
+	Chat_message(string rcvr, string sndr,string dat);
 	string to_str();
 };
 

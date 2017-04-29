@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "serverutils.h"
 
 #include <unordered_map>
 
@@ -93,6 +93,7 @@ struct Auth_message{ // all message types sent by server
 };
 
 bool authenticate(string username,string password){
+	return true;
 	for ( auto local_it = user_map.begin(); local_it!= user_map.end(); ++local_it ){
 		if(local_it->first == username and local_it->second.password == password)
 			return true;
@@ -104,13 +105,13 @@ int main(){
 	user_map["Rishabh"] = u1;
 	user_map["Sourabh"] = u2;
 	user_map["Harsh"] = u3;
-	user_map["Bharat"] = u4;
+	user_map["messi"] = u4;
 
 	int error_code = 0;
 	int listener_fd = get_listner(LISTEN_PORT,error_code);
 	if(listener_fd == -1)
 		exit(error_code);
-	
+
 	fd_set master_fds;	// master file descriptor list
 	fd_set read_fds;		// read fds
 	int fd_max = listener_fd;  // maximum file descriptor number
@@ -128,6 +129,8 @@ int main(){
 		}
 		for(int i = 0; i <= fd_max; i++){// run through the existing connections looking for data to read 
 			if (FD_ISSET(i, &read_fds)){ // we got one!!
+				// cout << "In the set " << i << endl;
+				// cout << "Listener " << listener_fd << endl;
 				if (i == listener_fd){ // new connection					
 					
 					struct sockaddr client_address;		// client address
@@ -146,7 +149,9 @@ int main(){
 				else{ // read data from a previously connected client
 					int curr_fd = i;
 					int nbytes = 0;
+					// cout << "R" << endl;
 				   	string data = read_full(curr_fd,nbytes);
+				   	cout << data << endl;
 				   	if(nbytes == 0){
 				   		close(curr_fd);	// close the curr socket 
 						FD_CLR(i, &master_fds); // remove from master set
@@ -155,9 +160,11 @@ int main(){
 				   	else if(nbytes < 0)
 				   		perror("recv");
 					else{
+						// cout << "XXXXXXX" << endl;
 				 		Json::Value  rec_msg = s2json(data);
 				 		if(rec_msg["type"].asInt() == 1){ // Chat_message
 				 			Chat_message msg(rec_msg);
+				 			cout<<"Received message \n"<<msg.data<<endl;
 				 			if(online_users.count(msg.receiver) == 0)// Receiver Offline
 				 				user_map[msg.receiver].unread_list.push_back(msg);
 				 			else{// Receiver Online

@@ -19,13 +19,16 @@ using namespace std;
 #define MAXDATASIZE 256 	// max number of bytes we can get at once 
 #define LISTEN_PORT "9033"	//local port for thread intercommunication
 
+#define EOM "```"
+
 mutex mtx_user_list,mtx_display,mtx_comm,mtx_file;
+ofstream debug("debug.txt");
 	
 struct Auth_message{ // all message types sent by server
 	int time_stamp;
 	bool status;
 	string sender, password;
-	Auth_message(string username, int time, string passwd = "NULL"){
+	Auth_message(string username, string passwd = "NULL",int time=1234){
 		time_stamp = time;
 		sender = username;
 		password = passwd;
@@ -64,15 +67,20 @@ struct User{
 struct UI{
 	int type,cursor_x,cursor_y,scroll;
 	bool update,exit_program;
+	bool auth_ack_received;
+	bool logged_in;
 	vector<User> user_list;
 	map <string,int> user_map;
 	int number_online,unread_messages;
 	int my_sock_fd,listener_fd;
-	User receipent; //The person whom we are talking with
+	User recipient; //The person whom we are talking with
+	string uname;
 	char display[24][80];
 	UI(){
 		type = 0;
+		auth_ack_received = false;
 		update = true;
+		logged_in = false;
 		exit_program = false;
 		number_online = 1;
 		unread_messages = 0;
@@ -160,41 +168,72 @@ void *Display(void *thread_arg)
 	pthread_exit(NULL);
 }
 
-bool authenticate(string username,string password)
+bool authenticate(UI * ui,string username,string password)
 {
-	return true;
+	Auth_message msg(username,password);
+	string data = msg.to_str(2) + EOM;
+	char *to_send = new char[data.length() + 1];
+	strcpy(to_send, data.c_str());                				
+	if (send(ui->my_sock_fd, to_send, data.length() + 1, 0) == -1) 
+	{
+        perror("send");
+        exit(1);
+    }
+    delete [] to_send;
+    while(!ui->auth_ack_received);
+    return ui->logged_in;
 }	
 
 void ProcessInput(UI *ui,int self_client_sock_fd)
 {
 	string command;
-	for (int i=0; i<80; i++)
+	for (int i=3; i<80; i++)
 		command = command + ui->display[23][i];
-	int l = 0,r = 79;
-	while (l < 80 and command[l] == ' ')
+	int l = 0,r = 76;
+	while (l < 77 and command[l] == ' ')
 		l++;
 	while (r >= 0 and command[r] == ' ')
 		r--;
 	if (l > r)
 		return;
+	//debug<<command<<endl;
 	command = command.substr(l,r-l+1);
+	
 	if (command[0] == ':')
-	{
+	{		
+	//	debug<<"inside  :  "<<endl;
+		command = command.substr(1);
+		debug<<"command"<<endl;
+		
+		if(command.substr(0,4) == "chat") {
+			command = command.substr(5);
+			debug<<command<<endl;
+			map<string,int>::iterator it = ui->user_map.find(command);
+			if (it == ui->user_map.end()) return;
+			ui->recipient = ui->user_list[it->second];
+			ui->type = 2;
+			ui->update = true;
+			debug<<"ui to be updated"<<endl;
+		}
 
 	}
 	else if (ui -> type == 2) // Chat Window
-	{
-		Chat_message msg(receipent.name,ui->uname,command);
-		string data = msg.to_str();
+	{	debug<<"uname : "<<ui->uname<<endl;
+		Chat_message msg(ui->recipient.name,ui->uname,command);
+		string data = msg.to_str() + EOM;
 		char *to_send = new char[data.length() + 1];
 		strcpy(to_send, data.c_str());                				
-		if (send(self_client_sock_fd, to_send, data.length() + 1, 0) == -1) 
+		if (send(ui->my_sock_fd, to_send, data.length() + 1, 0) == -1) 
 		{
-            // perror("send");
+            perror("send");
+            exit(1);
         }
-    	ofstream myfile("./chat/"+msg.sender+".echo",ios::app);
+        
+    	ofstream myfile("./chat/"+ui->recipient.name+".echo", fstream::out | fstream::app);
         myfile << msg.sender << " : " << msg.data<<"\n";
         myfile.close();
+
+        debug<<"MSG writtend"<<endl;
         delete []to_send;
 
 	}
@@ -203,7 +242,7 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 
 void *InputHandler(void *thread_arg)
 {
-	this_thread::sleep_for(chrono::milliseconds(5000));
+	this_thread::sleep_for(chrono::milliseconds(1000));
 	/*******Connecting to actual server*********/
 			//ofstream output_file("client_comm_log.txt");
 			struct addrinfo hints1, *servinfo1, *p1;
@@ -294,9 +333,10 @@ void *InputHandler(void *thread_arg)
 				}
 				else if (password_read)
 				{
-					if (authenticate(username,password))
+					if (authenticate(ui,username,password))
 					{
 						ui->type = 1;
+						ui->uname = username;
 						ui->load_ui();
 						ui->update = true;
 					}
@@ -377,6 +417,7 @@ void *CommunicationHandler(void *thread_arg)
 	char selfIP[INET_ADDRSTRLEN];
 	
 	self_sock_id = accept(listener_fd, &self_address, &addr_len);
+
 	if (self_sock_id == -1){
 		cout << "XXX" << endl;
 	    perror("accept"); 
@@ -385,7 +426,7 @@ void *CommunicationHandler(void *thread_arg)
 	    FD_SET(self_sock_id, &master_fds); // add to master set
 	    fd_max = max(self_sock_id,fd_max); // Keep track of maxfd
 	    // inet_ntop(self_address.sa_family, &((struct sockaddr_in*)&self_address)->sin_addr,selfIP, INET_ADDRSTRLEN);
-		close(listener_fd);
+		//close(listener_fd);
 	}
 
     while(true){// main loop 
@@ -394,6 +435,7 @@ void *CommunicationHandler(void *thread_arg)
             perror("select");
             exit(4);
         }
+        
         if (FD_ISSET(self_sock_id, &read_fds)){ // Data from other thread
         	int nbytes = 0;
            	string data = read_full(self_sock_id,nbytes);
@@ -407,16 +449,18 @@ void *CommunicationHandler(void *thread_arg)
            		// perror("recv");
        		}
             else{
+            	debug<<"Sending data to server "<<data<<endl;
          		char *to_send = new char[data.length() + 1];
 				strcpy(to_send, data.c_str());                				
  				if (send(my_sock_fd, to_send, data.length() + 1, 0) == -1) {
                     // perror("send");
                 }
-    
+    			delete [] to_send;
 
          	}
         }
         else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
+        	    	debug<<"receiving data from server "<<endl;
         	int nbytes = 0;
            	string data = read_full(listener_fd,nbytes);
            	if(nbytes == 0){
@@ -426,7 +470,8 @@ void *CommunicationHandler(void *thread_arg)
            	}
            	else if(nbytes < 0)
            	{
-           		// perror("recv");
+           		debug << "recv problem";
+           		exit(1);
            	}
             else{ //Process received data	
          		Json::Value rec_msg = s2json(data);
@@ -435,6 +480,15 @@ void *CommunicationHandler(void *thread_arg)
 					ofstream myfile("./chat/"+msg.sender+".echo",ios::app);
          			myfile<< msg.sender <<" : "<<msg.data<<"\n";
          			myfile.close();
+         		}
+         		else if (rec_msg["type"].asInt() == 2 ){
+         			debug << data << endl;
+         			Auth_message msg(rec_msg);
+         			ui->logged_in  = rec_msg["status"].asBool();
+         			ui->auth_ack_received = true;
+         			for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
+						debug<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
+					}
          		}
 	         	else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3 or rec_msg["type"].asInt() == 4){
 	         		Auth_message msg(rec_msg);
