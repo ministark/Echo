@@ -144,7 +144,7 @@ int main(){
     FD_ZERO(&read_fds);
 
     FD_SET(listener_fd, &master_fds);
-	printf("harsh\n");
+	printf("ECHO\n");
     while(true){// main loop 
         read_fds = master_fds; // copy it
         if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set so no check for 0 
