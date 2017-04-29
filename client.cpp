@@ -17,7 +17,6 @@ using namespace std;
 #define UPPER_KEY 127
 #define SERVER_PORT "9034"  // port we're listening on
 #define MAXDATASIZE 256 	// max number of bytes we can get at once 
-#define LISTEN_PORT "9033"	//local port for thread intercommunication
 
 #define EOM "```"
 
@@ -68,6 +67,7 @@ struct UI{
 	int type,cursor_x,cursor_y,scroll;
 	bool update,exit_program;
 	bool auth_ack_received;
+	string LISTEN_PORT;
 	bool logged_in;
 	vector<User> user_list;
 	map <string,int> user_map;
@@ -242,6 +242,8 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 
 void *InputHandler(void *thread_arg)
 {
+
+	UI *ui = (UI *)thread_arg;
 	this_thread::sleep_for(chrono::milliseconds(1000));
 	/*******Connecting to actual server*********/
 			//ofstream output_file("client_comm_log.txt");
@@ -250,7 +252,7 @@ void *InputHandler(void *thread_arg)
 			hints1.ai_family = AF_INET;
 			hints1.ai_socktype = SOCK_STREAM;
 			
-			int tmp = getaddrinfo("localhost", LISTEN_PORT, &hints1, &servinfo1);
+			int tmp = getaddrinfo("localhost", ui->LISTEN_PORT.c_str(), &hints1, &servinfo1);
 			if (tmp != 0){
 				//output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 				return NULL;
@@ -281,7 +283,7 @@ void *InputHandler(void *thread_arg)
 			// inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), serverIP, sizeof serverIP);
 			// printf("client: connecting to %s\n", serverIP);
 	/*******Connected*********/
-	UI *ui = (UI *)thread_arg;
+	
 	bool command_start = false,username_read,password_read;
 	int ch;
 	string username,password;
@@ -498,8 +500,16 @@ void *CommunicationHandler(void *thread_arg)
     }
 	pthread_exit(NULL);
 }
-int main()
+int main(int  argc, char  *argv[])
 {
+	string LISTEN_PORT;
+	if ( argc != 2 ){
+    	printf("usage :- ./client.out port \n");
+		return 0;
+	}
+  	else
+  		LISTEN_PORT = argv[1];
+  	cout << LISTEN_PORT << endl;
 	initscr();
     cbreak();
     noecho();
@@ -508,6 +518,7 @@ int main()
     keypad(stdscr, TRUE);
 	int d_thread,i_thread,c_thread;
 	UI ui;
+	ui.LISTEN_PORT = LISTEN_PORT;
 	ifstream testhome_file,testchat_file;
 	testhome_file.open("data/online_list.txt");
 	int k = 0;
@@ -556,7 +567,7 @@ int main()
 
 	/*******Complete the connection for other thread*********/
 		int error_code = 0;
-		int listener_fd = get_listner(LISTEN_PORT,error_code);
+		int listener_fd = get_listner(LISTEN_PORT.c_str() ,error_code);
 		if(listener_fd == -1)
 			exit(error_code);
 	/*******Completed********listener_fd*/
