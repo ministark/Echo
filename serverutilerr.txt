@@ -1,0 +1,14 @@
+WW
+N :83
+PP
+WW
+N :-1
+WW
+N :0
+WW
+N :79
+PP
+WW
+N :-1
+WW
+N :0

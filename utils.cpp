@@ -1,4 +1,7 @@
 #include "utils.h"
+#include <fstream>
+
+ofstream utdebug("clientutilerr.txt");
 
 Json::Value s2json(string s){
 	Json::Reader reader;
@@ -32,17 +35,18 @@ string read_full(int sock_fd,int &nbytes){
 	while(true){
 		char buf[256] = {};    	// buffer for client data
 		nbytes = recv(sock_fd, buf, 256, 0); 
-
+		utdebug << "N :" << nbytes << endl;
 		if (nbytes <= 0) // got error
 	        return "";
 	    else{
+	    	utdebug << "PP" << endl;
 	    	data += string(buf);
 	    	if(data.substr(data.length()-3,3) == "```"){
 	    		data = data.substr(0,data.length()-3);
 	    		return data;
 	    	}
 	    	else{
-	    		cout << data << endl;
+	    		cout << "INCOMPLETE "<<data << endl;
 	    	}
 	    }
 	}
@@ -98,6 +102,14 @@ int get_listner(const char *port,int &error_code){
 
 Chat_message::Chat_message(){
 }
+
+Chat_message::Chat_message(string rcvr, string sndr,string dat){
+	time_stamp = 1234;
+	sender = sndr;
+	receiver = rcvr;
+	data = dat;
+}
+
 Chat_message::Chat_message(Json::Value root){
 	time_stamp = root["time_stamp"].asInt();
 	receiver = root["receiver"].asString();
