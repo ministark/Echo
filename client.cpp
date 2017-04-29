@@ -19,7 +19,7 @@ using namespace std;
 #define MAXDATASIZE 256 	// max number of bytes we can get at once 
 #define LISTEN_PORT "9033"	//local port for thread intercommunication
 
-mutex mtx_user_list,mtx_display,mtx_comm;
+mutex mtx_user_list,mtx_display,mtx_comm,mtx_file;
 	
 struct Auth_message{ // all message types sent by server
 	int time_stamp;
@@ -165,8 +165,39 @@ bool authenticate(string username,string password)
 	return true;
 }	
 
-void ProcessInput(UI *ui)
+void ProcessInput(UI *ui,int self_client_sock_fd)
 {
+	string command;
+	for (int i=0; i<80; i++)
+		command = command + ui->display[23][i];
+	int l = 0,r = 79;
+	while (l < 80 and command[l] == ' ')
+		l++;
+	while (r >= 0 and command[r] == ' ')
+		r--;
+	if (l > r)
+		return;
+	command = command.substr(l,r-l+1);
+	if (command[0] == ':')
+	{
+
+	}
+	else if (ui -> type == 2) // Chat Window
+	{
+		Chat_message msg(receipent.name,ui->uname,command);
+		string data = msg.to_str();
+		char *to_send = new char[data.length() + 1];
+		strcpy(to_send, data.c_str());                				
+		if (send(self_client_sock_fd, to_send, data.length() + 1, 0) == -1) 
+		{
+            // perror("send");
+        }
+    	ofstream myfile("./chat/"+msg.sender+".echo",ios::app);
+        myfile << msg.sender << " : " << msg.data<<"\n";
+        myfile.close();
+        delete []to_send;
+
+	}
 	return;
 }
 
@@ -314,7 +345,7 @@ void *InputHandler(void *thread_arg)
 			}
 			else
 			{
-				ProcessInput(ui);
+				ProcessInput(ui,self_client_sock_fd);
 				for (int i=0; i<80; i++)
 					ui->display[ui->cursor_x][i] = ' ';
 				ui->edit_display(ui->cursor_x,0,"->");
@@ -401,7 +432,7 @@ void *CommunicationHandler(void *thread_arg)
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
          			Chat_message msg(rec_msg);
-					ofstream myfile(msg.sender+".echo",ios::app);
+					ofstream myfile("./chat/"+msg.sender+".echo",ios::app);
          			myfile<< msg.sender <<" : "<<msg.data<<"\n";
          			myfile.close();
          		}
