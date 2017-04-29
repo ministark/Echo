@@ -162,7 +162,7 @@ int main(){
 				   	string data = read_full(curr_fd,nbytes);
 				   	cout << data << endl;
 				   	if(nbytes == 0){
-				   		for(auto it = user_map.begin(), it!= user_map.end(), ++it){
+				   		for(auto it = user_map.begin(); it!= user_map.end(); ++it){
 				   			if(it->second.socket_id == curr_fd)
 				   				online_users.erase(it->first);
 				   		}
