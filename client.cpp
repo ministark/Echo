@@ -230,7 +230,7 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
         }
         
     	ofstream myfile("./chat/"+ui->recipient.name+".echo", fstream::out | fstream::app);
-        myfile << msg.sender << " : " << msg.data<<"\n";
+        myfile << ">" << msg.data<<"\n";
         myfile.close();
 
         debug<<"MSG writtend"<<endl;
@@ -464,7 +464,8 @@ void *CommunicationHandler(void *thread_arg)
         else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
         	    	debug<<"receiving data from server "<<endl;
         	int nbytes = 0;
-           	string data = read_full(my_sock_fd,nbytes);
+           	string data = read_full(my_sock_fd,nbytes);\
+           	debug << "YOYO : "<< data << endl;
            	if(nbytes == 0){
            		close(my_sock_fd);	// close the curr socket 
 		    	FD_CLR(my_sock_fd, &master_fds); // remove from master set
@@ -479,8 +480,9 @@ void *CommunicationHandler(void *thread_arg)
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
          			Chat_message msg(rec_msg);
-					ofstream myfile("./chat/"+msg.sender+".echo",ios::app);
-         			myfile<< msg.sender <<" : "<<msg.data<<"\n";
+					ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
+         			myfile<< "<"<<msg.data<<"\n";
+         			debug<<msg.data<<endl;
          			myfile.close();
          		}
          		else if (rec_msg["type"].asInt() == 2 ){
@@ -503,12 +505,15 @@ void *CommunicationHandler(void *thread_arg)
 int main(int  argc, char  *argv[])
 {
 	string LISTEN_PORT;
-	if ( argc != 2 ){
-    	printf("usage :- ./client.out port \n");
+	string server_name;
+	if ( argc != 3 ){
+    	printf("usage :- ./client server_hostname port \n");
 		return 0;
 	}
-  	else
-  		LISTEN_PORT = argv[1];
+  	else{
+  		LISTEN_PORT = argv[2];
+  		server_name = argv[1];
+  	}
   	cout << LISTEN_PORT << endl;
 	initscr();
     cbreak();
@@ -529,7 +534,7 @@ int main(int  argc, char  *argv[])
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		
-		int tmp = getaddrinfo("localhost", SERVER_PORT, &hints, &servinfo);
+		int tmp = getaddrinfo(server_name.c_str(), SERVER_PORT, &hints, &servinfo);
 		if (tmp != 0){
 			output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 			return 0;

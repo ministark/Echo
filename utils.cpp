@@ -46,7 +46,7 @@ string read_full(int sock_fd,int &nbytes){
 	    		return data;
 	    	}
 	    	else{
-	    		cout << "INCOMPLETE "<<data << endl;
+	    	//	cout << "INCOMPLETE "<<data << endl;
 	    	}
 	    }
 	}

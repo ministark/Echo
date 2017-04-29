@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 #define LISTEN_PORT "9034"   // port we're listening on
-
+#define EOM "```"
 struct User_data{
 	string password;
 	int socket_id;
@@ -20,7 +20,7 @@ t_user_map user_map;
 typedef unordered_map<string,set<string> > t_group_map;
 t_group_map group_map;
 
-set<string>online_users;
+set<string> online_users;
 
 struct Auth_message{ // all message types sent by server
 	int time_stamp;
@@ -32,10 +32,12 @@ struct Auth_message{ // all message types sent by server
 			time_stamp = root["time_stamp"].asInt();
 			password = root["password"].asString();
 			sender = root["sender"].asString();
+			receiver = sender;
 		}
 		else if (type == 3){ // LOGOUT
 			time_stamp = root["time_stamp"].asInt();
 			sender = root["sender"].asString();
+			receiver = sender;
 		}
 	}
 	string to_str(int type){
@@ -160,6 +162,10 @@ int main(){
 				   	string data = read_full(curr_fd,nbytes);
 				   	cout << data << endl;
 				   	if(nbytes == 0){
+				   		for(auto it = user_map.begin(), it!= user_map.end(), ++it){
+				   			if(it->second.socket_id == curr_fd)
+				   				online_users.erase(it->first);
+				   		}
 				   		close(curr_fd);	// close the curr socket 
 						FD_CLR(i, &master_fds); // remove from master set
 						printf("selectserver: socket %d hung up\n", curr_fd);
@@ -175,6 +181,7 @@ int main(){
 				 			if(online_users.count(msg.receiver) == 0)// Receiver Offline
 				 				user_map[msg.receiver].unread_list.push_back(msg);
 				 			else{// Receiver Online
+				 				data = data + EOM;
 				 				char *to_send = new char[data.length() + 1];
 								strcpy(to_send, data.c_str());								
 				 				if (send(user_map[msg.receiver].socket_id, to_send, data.length() + 1, 0) == -1) {
@@ -200,7 +207,7 @@ int main(){
 				 					online_users.erase(msg.sender);
 
 				 					string msg_str = msg.to_str(4);
-				 					msg_str+= "```";
+				 					msg_str+= EOM;
 						 			char *to_send = new char[msg_str.length() + 1];
 									strcpy(to_send, msg_str.c_str());
 				 			
