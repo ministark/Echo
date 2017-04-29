@@ -1,2 +1,13 @@
 receiving data from server 
-recv problem
+{
+"type": 2,
+"time_stamp": 1234,
+"status": 1,
+"unread_list":[
+	],
+"online_users":[
+	"1":"Rksha",
+	"2":"messi",
+	"3":"rishabah"
+	]
+}

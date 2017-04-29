@@ -462,7 +462,7 @@ void *CommunicationHandler(void *thread_arg)
         else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
         	    	debug<<"receiving data from server "<<endl;
         	int nbytes = 0;
-           	string data = read_full(listener_fd,nbytes);
+           	string data = read_full(my_sock_fd,nbytes);
            	if(nbytes == 0){
            		close(my_sock_fd);	// close the curr socket 
 		    	FD_CLR(my_sock_fd, &master_fds); // remove from master set
