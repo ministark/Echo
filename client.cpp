@@ -174,7 +174,7 @@ void *InputHandler(void *thread_arg)
 {
 	this_thread::sleep_for(chrono::milliseconds(5000));
 	/*******Connecting to actual server*********/
-			ofstream output_file("client_comm_log.txt");
+			//ofstream output_file("client_comm_log.txt");
 			struct addrinfo hints1, *servinfo1, *p1;
 			memset(&hints1, 0, sizeof hints1);
 			hints1.ai_family = AF_INET;
@@ -182,20 +182,20 @@ void *InputHandler(void *thread_arg)
 			
 			int tmp = getaddrinfo("localhost", LISTEN_PORT, &hints1, &servinfo1);
 			if (tmp != 0){
-				output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
+				//output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 				return NULL;
 			}
 			
 			int self_client_sock_fd;  
 			for(p1 = servinfo1; p1 != NULL; p1 = p1->ai_next){ // loop through all the results and connect to the first we can
 				if ((self_client_sock_fd = socket(p1->ai_family, p1->ai_socktype,p1->ai_protocol)) == -1) {
-					output_file << "client : socket " << LISTEN_PORT << endl;
+					//output_file << "client : socket " << LISTEN_PORT << endl;
 					// perror("client: socket");
 					continue;
 				}
 
 				if (connect(self_client_sock_fd, p1->ai_addr, p1->ai_addrlen) == -1) {
-					output_file << "client: connect" << LISTEN_PORT << endl;
+					//output_file << "client: connect" << LISTEN_PORT << endl;
 					// perror("client: connect");
 					close(self_client_sock_fd);
 					continue;
@@ -203,7 +203,7 @@ void *InputHandler(void *thread_arg)
 				break;
 			}
 			if (p1 == NULL) {
-				output_file << "client: failed to connect " << endl;
+				//output_file << "client: failed to connect " << endl;
 				return NULL;
 			}	
 			freeaddrinfo(servinfo1);
@@ -381,7 +381,8 @@ void *CommunicationHandler(void *thread_arg)
  				if (send(my_sock_fd, to_send, data.length() + 1, 0) == -1) {
                     // perror("send");
                 }
-                delete [] to_send;
+    
+
          	}
         }
         else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
@@ -400,6 +401,9 @@ void *CommunicationHandler(void *thread_arg)
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
          			Chat_message msg(rec_msg);
+					ofstream myfile(msg.sender+".echo",ios::app);
+         			myfile<< msg.sender <<" : "<<msg.data<<"\n";
+         			myfile.close();
          		}
 	         	else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3 or rec_msg["type"].asInt() == 4){
 	         		Auth_message msg(rec_msg);
@@ -423,7 +427,7 @@ int main()
 	testhome_file.open("data/online_list.txt");
 	int k = 0;
 	/*******Connecting to actual server*********/
-		ofstream output_file("client_comm_log.txt");
+	ofstream output_file("client_comm_log.txt");
 		struct addrinfo hints, *servinfo, *p;
 		memset(&hints, 0, sizeof hints);
 		hints.ai_family = AF_INET;
@@ -446,6 +450,7 @@ int main()
 			if (connect(my_sock_fd, p->ai_addr, p->ai_addrlen) == -1) {
 				output_file << "client: connect" << SERVER_PORT << endl;
 				// perror("client: connect");
+				output_file.close();
 				close(my_sock_fd);
 				continue;
 			}
@@ -454,8 +459,10 @@ int main()
 		}
 		if (p == NULL) {
 			output_file << "client: failed to connect " << endl;
+			output_file.close();
 			return 0;
 		}	
+
 		freeaddrinfo(servinfo);		 // all done with this structure
 		// char serverIP[INET6_ADDRSTRLEN];
 		// inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), serverIP, sizeof serverIP);
@@ -466,7 +473,7 @@ int main()
 		int error_code = 0;
 		int listener_fd = get_listner(LISTEN_PORT,error_code);
 		if(listener_fd == -1)
-			exit(error_code);	
+			exit(error_code);
 	/*******Completed********listener_fd*/
 	
 	while (!testhome_file.eof())
