@@ -1,34 +1,8 @@
 #include "utils.h"
 
 #include <unordered_map>
-#include <set>
 
 #define LISTEN_PORT "9034"   // port we're listening on
-
-struct Chat_message{ // peer to peer messages
-	int time_stamp;
-	int type;
-	string receiver, sender;
-	string data;
-	Chat_message(){}
-	Chat_message(Json::Value root){
-		time_stamp = root["time_stamp"].asInt();
-		receiver = root["receiver"].asString();
-		sender = root["sender"].asString();
-		data = root["data"].asString();
-		type = root["type"].asInt();
-	
-	}
-	string to_str(){
-		string s = "{\n";
-		s+= assign("type",type) + ",\n" +
-			assign("time_stamp",time_stamp) + ",\n" +
-			assign("receiver",receiver) + ",\n" +
-			assign("sender",sender) + ",\n" +
-			assign("data",data) + "\n}";
-		return s;
-	}
-};
 
 struct User_data{
 	string password;
@@ -38,6 +12,7 @@ struct User_data{
 		socket_id = -1;
 	}
 	vector<Chat_message> unread_list;
+	vector<Group_formation_message> g_unread_list;
 };
 	
 typedef unordered_map<string,User_data> t_user_map;
@@ -144,7 +119,6 @@ int main(){
     FD_ZERO(&read_fds);
 
     FD_SET(listener_fd, &master_fds);
-	printf("harsh\n");
     while(true){// main loop 
         read_fds = master_fds; // copy it
         if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set so no check for 0 
@@ -234,10 +208,10 @@ int main(){
 							delete [] to_send;
 		                }
 		                else if(rec_msg["type"].asInt() == 5){
-		                	Chat_message msg(rec_msg);
-	             			for (auto it = group_map[msg.receiver].begin(); it!=group_map[msg.receiver].end(); ++it){
+		                	Group_formation_message msg(rec_msg);
+	             			for (auto it = group_map[msg.group_name].begin(); it!=group_map[msg.group_name].end(); ++it){
 	             				if(online_users.count(*it) == 0)// Receiver Offline
-	             					user_map[*it].unread_list.push_back(msg);
+	             					user_map[*it].g_unread_list.push_back(msg);
 		             			else{// Receiver Online
 		             				char *to_send = new char[data.length() + 1];
 									strcpy(to_send, data.c_str());                				

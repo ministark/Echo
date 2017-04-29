@@ -20,35 +20,6 @@ using namespace std;
 #define LISTEN_PORT "9033"	//local port for thread intercommunication
 
 mutex mtx_user_list,mtx_display,mtx_comm;
-struct Chat_message{ // peer to peer messages
-	int time_stamp;
-	int type;
-	string receiver, sender;
-	string data;
-	Chat_message(){}
-	Chat_message(string username, int time, string rec, int t){
-		time_stamp = time;
-		sender = username;
-		receiver = rec;
-		type = t;
-	}
-	Chat_message(Json::Value root){
-		time_stamp = root["time_stamp"].asInt();
-		receiver = root["receiver"].asString();
-		sender = root["sender"].asString();
-		data = root["data"].asString();
-		type = root["type"].asInt();
-	}
-	string to_str(){
-		string s = "{\n";
-		s+= assign("type",type) + ",\n" +
-			assign("time_stamp",time_stamp) + ",\n" +
-			assign("receiver",receiver) + ",\n" +
-			assign("sender",sender) + ",\n" +
-			assign("data",data) + "\n}";
-		return s;
-	}
-};
 	
 struct Auth_message{ // all message types sent by server
 	int time_stamp;

@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <string>
+#include <set>
 
 using namespace std;
 
@@ -25,3 +26,20 @@ Json::Value s2json(string s);
 void *get_in_addr(struct sockaddr *sa);
 string read_full(int sock_fd,int &nbytes);
 int get_listner(const char * port,int &error_code);
+
+struct Chat_message{ // peer to peer messages
+	int time_stamp;
+	string receiver, sender;
+	string data;
+	Chat_message();
+	Chat_message(Json::Value root);
+	string to_str();
+};
+
+struct Group_formation_message{ // peer to peer messages
+	int time_stamp;
+	string sender, group_name;
+	set<string> members;
+	Group_formation_message(Json::Value root);
+	string to_str();
+};
