@@ -549,11 +549,11 @@ void *CommunicationHandler(void *thread_arg)
          			Auth_message msg(rec_msg);
          			ui->logged_in  = rec_msg["status"].asBool();
          			ui->auth_ack_received = true;
-         			ofstream myfile("./data/online_list.txt", fstream::out|fstream::app);
+         			ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
          			for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
 						myfile<<"<"<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
 					}
-					myfile.close()
+					myfile.close();
 					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 3 ){
