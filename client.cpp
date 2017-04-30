@@ -494,7 +494,22 @@ void *CommunicationHandler(void *thread_arg)
 						debug<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
 					}
          		}
-	         	else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3 or rec_msg["type"].asInt() == 4){
+         		else if(rec_msg["type"].asInt() == 3 ){
+         			debug << data << endl;
+         			Auth_message msg(rec_msg);
+         			ofstream myfile("./data/online_list.txt", fstream::out);
+         			for (int i = 0; i < rec_msg["online_users"].size(); ++i){
+						myfile<<rec_msg["online_users"][to_string(i)].asString()<<endl;
+					}
+					myfile.close();
+					ofstream myfile2("./data/offline_list.txt", fstream::out);
+					for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
+						myfile2<<rec_msg["offline_users"][to_string(i)].asString()<<endl;
+					}
+			        myfile2.close();
+			        debug << "online and offline users updated";
+         		}
+	         	else if(rec_msg["type"].asInt() == 4){
 	         		Auth_message msg(rec_msg);
 	         	} 	
          	}
