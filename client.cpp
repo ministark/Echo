@@ -457,12 +457,13 @@ void *InputHandler(void *thread_arg)
 					int auth_status = authenticate(ui,username,password);
 					if (auth_status == 1)
 					{
-						ui->type = 1;
-						ui->load_ui();
 						ui->uname = username;
 						ui->edit_display(20,26,"Successful Login" );
 						ui->update = true;
 						this_thread::sleep_for(chrono::milliseconds(1000));
+						ui->type = 1;
+						ui->load_ui();
+						ui->update = true;
 					}
 					else if (auth_status == 0)
 					{
@@ -475,12 +476,18 @@ void *InputHandler(void *thread_arg)
 						ui->edit_display(20,26,"Invalid password");
 						ui->update = true;
 						this_thread::sleep_for(chrono::milliseconds(1000));
+						ui->load_ui();
+						ui->update = true;
  					}
  					else if (auth_status == 2)
  					{
  						ui->edit_display(20,26,"Registration Successful");
 						ui->update = true;
 						this_thread::sleep_for(chrono::milliseconds(1000));
+						ui->type = 1;
+						ui->uname = username;
+						ui->load_ui();
+						ui->update = true;
  					}
 				}
 			}
