@@ -154,6 +154,8 @@ void *Display(void *thread_arg)
 				while (!online_file.eof())
 				{
 					online_file >> name;
+					if ((!name_list.empty() and name_list.back() == name) or name == ui->uname)
+						continue;
 					name_list.push_back(name);
 					status_list.push_back("online");
 					if (ui->user_map.find(name) == ui->user_map.end())
@@ -170,6 +172,8 @@ void *Display(void *thread_arg)
 				while (!offline_file.eof())
 				{
 					offline_file >> name;
+					if ((!name_list.empty() and name_list.back() == name) or name == ui->uname)
+						continue;
 					name_list.push_back(name);
 					status_list.push_back("offline");
 					if (ui->user_map.find(name) == ui->user_map.end())
@@ -605,6 +609,7 @@ void *CommunicationHandler(void *thread_arg)
          			ui->auth_ack_received = true;
 
 					for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
+
 						debug<<rec_msg["unread_list"][i].get("sender","XXX").asString()<<endl;
 						ofstream myfile("./chat/"+rec_msg["unread_list"][i].get("sender","XXX").asString()+".echo",fstream::out|fstream::app);
 						myfile<<"<"<<rec_msg["unread_list"][i].get("data","------------------------").asString()<<endl;
