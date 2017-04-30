@@ -146,6 +146,8 @@ void *Display(void *thread_arg)
 			}
 			else if (ui->type == 1) // Home 
 			{
+				ui->edit_display(2,3,"                ");
+				ui->edit_display(2,3,ui->uname);
 				ifstream online_file("./data/online_list.txt"),offline_file("./data/offline_list.txt");
 				string name,status;vector <string> name_list,status_list;
 				int ls = ui->user_list.size();
