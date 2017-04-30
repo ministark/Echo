@@ -64,7 +64,7 @@ struct User{
 };
 
 struct UI{
-	int type,cursor_x,cursor_y,scroll;
+	int type,cursor_x,cursor_y,scroll,maxscroll ;
 	bool update,exit_program;
 	bool auth_ack_received;
 	string LISTEN_PORT;
@@ -85,6 +85,7 @@ struct UI{
 		number_online = 1;
 		unread_messages = 0;
 		scroll = 0;
+		maxscroll = 0;
 		load_ui();
 	}
 	void load_ui(){
@@ -164,6 +165,8 @@ void *Display(void *thread_arg)
 			else if (ui->type == 2) // Chat Window
 			{
 				// Check Notification Bar
+				ui->edit_display(2,3,"                ");
+				ui->edit_display(2,3,ui->recipient.name);
 				ofstream debug_chat("debug_chat.txt");
 				for (int j=7; j<22; j++)
 					ui->edit_display(j,1,"                                                                              ");
@@ -173,9 +176,9 @@ void *Display(void *thread_arg)
 				int start;
 				while (getline(myfile,line))
 					line_list.push_back(line);
-				debug_chat << "stored line list" << endl;
 				int list_len = line_list.size(),lk = 21, str_line = 0;
-				for (int j = list_len - 1; j >= 0; j--)
+				ui->maxscroll = max(0,list_len-11);
+				for (int j = list_len - 1 - ui->scroll; j >= 0; j--)
 				{
 					if(lk-((line_list[j].length()-1)/50)+1  < 7) 
 					{
@@ -184,20 +187,19 @@ void *Display(void *thread_arg)
 					}
 					lk -= ((line_list[j].length()-1)/50)+1;
 				}
-				debug_chat << str_line << " strline " <<  list_len << " list_len " << endl;
 				int ck = 7;
 				for(int j = str_line; j < list_len; j++)
 				{
-					debug_chat << line_list[j] << endl;
 					if(line_list[j][0] == '>')
 						start = 28;
 					else
 						start = 3;
 					int line_len = line_list[j].length();
 					line = line_list[j].substr(1);
+					debug_chat << line << endl;
 					if (line_len <= 50 and start == 28)
 					{
-						ui->edit_display(ck,80-line_len,line);
+						ui->edit_display(ck,79-line_len,line);
 						ck++;
 					}
 					else
@@ -205,6 +207,7 @@ void *Display(void *thread_arg)
 						while (line_len > 0 and ck < 22)
 						{
 							ui->edit_display(ck,start,line.substr(0,min(50,line_len)));
+							debug_chat << line.substr(0,min(50,line_len)) << endl;
 							line_len -= min(50,line_len);
 							if (line_len > 0)
 								line = line.substr(50);
@@ -214,6 +217,7 @@ void *Display(void *thread_arg)
 					if (ck >= 22)
 						break;
 				}
+				myfile.close();
 				// Process messages from user->messages and paste it in display
 			}
 			RefreshDisplay(ui->display);
@@ -436,11 +440,24 @@ void *InputHandler(void *thread_arg)
 						ui->scroll++;
 						ui->update = true;
 					}
+					else if (ui->type == 2 and ui-> scroll > 0)
+					{
+						ui->scroll--;
+						ui->update = true;
+					}
 				}
-				else if (ch == KEY_UP and ui->scroll > 0)
+				else if (ch == KEY_UP)
 				{
-					ui->scroll--;
-					ui->update = true;
+					if (ui->type == 2 and ui->scroll<ui->maxscroll)
+					{	
+						ui->scroll++;
+						ui->update = true;
+					}
+					else if (ui->type == 1 and ui -> scroll > 0)
+					{
+						ui->scroll--;
+						ui->update = true;
+					}
 				}
 			}
 			else
@@ -479,7 +496,6 @@ void *CommunicationHandler(void *thread_arg)
 	self_sock_id = accept(listener_fd, &self_address, &addr_len);
 
 	if (self_sock_id == -1){
-		cout << "XXX" << endl;
 	    perror("accept"); 
 	}
 	else{
