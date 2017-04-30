@@ -229,6 +229,8 @@ int main(){
 				 			if (send(curr_fd, to_send1, msg_str.length() + 1, 0) == -1) {
 								perror("send");
 							}
+							if(rec_msg["type"].asInt() == 2)
+								user_map[msg.sender].unread_list.clear();
 							delete [] to_send1;
 
 							//Send online user list to all users for updating
