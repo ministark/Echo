@@ -1,9 +1,11 @@
 #include "serverutils.h"
-#include <fstream>
-#include <unordered_map>
+#include <fstream> 			// ouput to files for debug
+#include <unordered_map> 	// storing all users
 
-#define LISTEN_PORT "9034"   // port we're listening on
+#define LISTEN_PORT "9034"  // Port on which server will listen for incomming connections
 #define EOM "```"
+
+//Stores password, socket ID, unread messages of user
 struct User_data{
 	string password;
 	int socket_id;
@@ -14,15 +16,20 @@ struct User_data{
 	vector<Chat_message> unread_list;
 	vector<Group_formation_message> g_unread_list;
 };
-	
+
+//Store all users in a hash map	
 typedef unordered_map<string,User_data> t_user_map;
 t_user_map user_map;
+
+//Store all groups in a hash map
 typedef unordered_map<string,set<string> > t_group_map;
 t_group_map group_map;
 
+//Stores set of all online users
 set<string> online_users;
 
-struct Auth_message{ // all message types sent by server
+//Message data of all useful messages sent and received by server
+struct Auth_message{ 
 	int time_stamp;
 	string password;
 	bool status;
@@ -95,6 +102,7 @@ struct Auth_message{ // all message types sent by server
 	}
 };
 
+//Authenticate the user
 bool authenticate(string username,string password){
 	return true;
 	for ( auto local_it = user_map.begin(); local_it!= user_map.end(); ++local_it ){
@@ -104,84 +112,88 @@ bool authenticate(string username,string password){
 }
 
 int main(){
-
+/*********Load set of valid users in the files***********/
 	User_data u[100];
 	int k =0;
 	ifstream users_file;
 	users_file.open("data/user_list.txt");
-	while (!users_file.eof())
-	{
+	while (!users_file.eof()){
 		string name;
 		users_file >> name;
 		user_map[name] = u[k++];
 	}
 	users_file.close();
-
+/*********Data loaded************/
+	
+/*********Get Listener for SERVER PORT***********/
 	int error_code = 0;
 	int listener_fd = get_listner(LISTEN_PORT,error_code);
 	if(listener_fd == -1)
 		exit(error_code);
+/*********listener socket created***********/
 
-	fd_set master_fds;	// master file descriptor list
-	fd_set read_fds;		// read fds
-	int fd_max = listener_fd;  // maximum file descriptor number
+/*********Create fdset for selece server functionality***********/
+	fd_set master_fds;			// master  file descriptor list
+	fd_set read_fds;			// to read file descriptor list
+	int fd_max = listener_fd;  	// maximum file descriptor number
 	
 	FD_ZERO(&master_fds);   // clear the master and read sets
 	FD_ZERO(&read_fds);
 
-	FD_SET(listener_fd, &master_fds);
+	FD_SET(listener_fd, &master_fds); //add listener to master set
 
 	while(true){// main loop 
-		read_fds = master_fds; // copy it
-		if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set so no check for 0 
+		read_fds = master_fds; // copy master in read to check for read data in these connections
+		
+		if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set BLOCKING CALL 
 			perror("select");
 			exit(4);
 		}
-		for(int i = 0; i <= fd_max; i++){// run through the existing connections looking for data to read 
-			if (FD_ISSET(i, &read_fds)){ // we got one!!
-				// cout << "In the set " << i << endl;
-				// cout << "Listener " << listener_fd << endl;
-				if (i == listener_fd){ // new connection					
+		for(int i = 0; i <= fd_max; i++){	// run through the existing connections looking for data to read 
+			if (FD_ISSET(i, &read_fds)){ 	// we got one!!
+				if (i == listener_fd){ 		// new connection					
 					
-					struct sockaddr client_address;		// client address
+					struct sockaddr client_address;				// client address
 					socklen_t addr_len = sizeof client_address;	// client address length
-					char clientIP[INET_ADDRSTRLEN];
-					int new_fd = accept(listener_fd, &client_address, &addr_len); // New socket descriptor
-					if (new_fd == -1)
+					char clientIP[INET_ADDRSTRLEN];				// char* to staore IPstring of client
+					//Accept new connection and spawn new socket for this connection
+					int new_fd = accept(listener_fd, &client_address, &addr_len); 
+					if (new_fd == -1) 		// Error in accept
 						perror("accept"); 
 					else{
-						FD_SET(new_fd, &master_fds); // add to master set
-						fd_max = max(new_fd,fd_max); // Keep track of maxfd
+						FD_SET(new_fd, &master_fds); 			// add newfd to master set
+						fd_max = max(new_fd,fd_max); 			// Keep track of maxfd
 						inet_ntop(client_address.sa_family, &((struct sockaddr_in*)&client_address)->sin_addr,clientIP, INET_ADDRSTRLEN);
 						printf("selectserver: new connection from %s on socket %d\n", clientIP, new_fd);
 					}
 				} 
-				else{ // read data from a previously connected client
+				else{ 						// read data from a previously connected client
 					int curr_fd = i;
 					int nbytes = 0;
-					// cout << "R" << endl;
-				   	string data = read_full(curr_fd,nbytes);
-				   	cout << data << endl;
-				   	if(nbytes == 0){
-				   		for(auto it = user_map.begin(); it!= user_map.end(); ++it){
+					string data = read_full(curr_fd,nbytes); //read till end of data
+				   	cout << data << endl; 	// INPORTANT DEBUG STATEMENT
+ 				   	
+				   	if(nbytes == 0){ 		// Client wants to close the connection
+				   		for(auto it = user_map.begin(); it!= user_map.end(); ++it){ //Make the use offline
 				   			if(it->second.socket_id == curr_fd)
 				   				online_users.erase(it->first);
 				   		}
-				   		close(curr_fd);	// close the curr socket 
+				   		close(curr_fd);			// close the curr socket 
 						FD_CLR(i, &master_fds); // remove from master set
 						printf("selectserver: socket %d hung up\n", curr_fd);
 				   	}
-				   	else if(nbytes < 0)
+				   	else if(nbytes < 0) 		// Error in receiveing
 				   		perror("recv");
 					else{
-						// cout << "XXXXXXX" << endl;
-				 		Json::Value  rec_msg = s2json(data);
-				 		if(rec_msg["type"].asInt() == 1){ // Chat_message
+				 		Json::Value  rec_msg = s2json(data);  			//Parse json received
+				 		
+				 		if(rec_msg["type"].asInt() == 1){ 				// Chat_message
 				 			Chat_message msg(rec_msg);
 				 			cout<<"Received message \n"<<msg.data<<endl;
-				 			if(online_users.count(msg.receiver) == 0)// Receiver Offline
+				 			
+				 			if(online_users.count(msg.receiver) == 0)	// Receiver Offline
 				 				user_map[msg.receiver].unread_list.push_back(msg);
-				 			else{// Receiver Online
+				 			else{										// Receiver Online //SEND msg to receiver 
 				 				data = data + EOM;
 				 				char *to_send = new char[data.length() + 1];
 								strcpy(to_send, data.c_str());								
@@ -191,24 +203,25 @@ int main(){
 								delete [] to_send;
 							}
 				 		}
-				 		else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3){ //LOGIN
+				 		else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3){ // Server messages
 				 			Auth_message msg(rec_msg,2);
 				 			msg.status = 0;
 
-				 			if(rec_msg["type"].asInt() == 2){
-					 			if(authenticate(msg.sender,msg.password)){
+				 			if(rec_msg["type"].asInt() == 2){	//Login Request Message
+					 			if(authenticate(msg.sender,msg.password)){ // authenticate USER
 					 				msg.status = 1;
 					 				online_users.insert(msg.sender);
 					 				user_map[msg.sender].socket_id = curr_fd;
 					 			}
 							}
-							else{
-								if(online_users.count(msg.sender) == 0){
+							else{								//Logout Request Message
+								if(online_users.count(msg.sender) == 0){ // If not already online
 				 					msg.status = 1;
 				 					online_users.erase(msg.sender);	
 				 				}
 							}
 
+							//Send response to sender and his/her unread list
 				 			string msg_str = msg.to_str(rec_msg["type"].asInt()) + EOM;
 				 			char *to_send1 = new char[msg_str.length() + 1];
 							strcpy(to_send1, msg_str.c_str());
@@ -216,8 +229,11 @@ int main(){
 				 			if (send(curr_fd, to_send1, msg_str.length() + 1, 0) == -1) {
 								perror("send");
 							}
+							if(rec_msg["type"].asInt() == 2)
+								user_map[msg.sender].unread_list.clear();
 							delete [] to_send1;
 
+							//Send online user list to all users for updating
 							msg_str = msg.to_str(4);
 		 					msg_str+= EOM;
 		 					cout<<msg_str<<endl;
@@ -231,12 +247,13 @@ int main(){
 		 					}
 		 					delete [] to_send;	
 						}
-						else if(rec_msg["type"].asInt() == 5){
+						else if(rec_msg["type"].asInt() == 5){ 			// Group chat message
 							Group_formation_message msg(rec_msg);
+				 			
 				 			for (auto it = group_map[msg.group_name].begin(); it!=group_map[msg.group_name].end(); ++it){
-				 				if(online_users.count(*it) == 0)// Receiver Offline
+				 				if(online_users.count(*it) == 0)	// Receiver of group offline ADD message to his/her queue
 				 					user_map[*it].g_unread_list.push_back(msg);
-					 			else{// Receiver Online
+					 			else{								// Receiver of group online SEND immediately
 					 				char *to_send = new char[data.length() + 1];
 									strcpy(to_send, data.c_str());								
 					 				if (send(user_map[*it].socket_id, to_send, data.length() + 1, 0) == -1) {
