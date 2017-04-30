@@ -9,21 +9,7 @@ YOYO : {
 "time_stamp": 1234,
 "receiver":"messi",
 "sender":"rishshah",
-"data":"asdasd"
-},
-	{
-"type": 1,
-"time_stamp": 1234,
-"receiver":"messi",
-"sender":"rishshah",
-"data":"asdasdasd"
-},
-	{
-ïÔ[Â"type": 1,
-"time_stamp": 1234,
-"receiver":"messi",
-"sender":"rishshah",
-"data":"asasdasdasdas"
+"data":"YOYOYOYOYO"
 }
 	]
 }
@@ -37,20 +23,45 @@ YOYO : {
 "time_stamp": 1234,
 "receiver":"messi",
 "sender":"rishshah",
-"data":"asdasd"
-},
-	{
-"type": 1,
-"time_stamp": 1234,
-"receiver":"messi",
-"sender":"rishshah",
-"data":"asdasdasd"
-},
-	{
-ïÔ[Â"type": 1,
-"time_stamp": 1234,
-"receiverreceiving data from server 
-YOYO : {
+"data":"YOYOYOYOYO"
+}
+	]
+}
+receiving data from server 
+YOYO : s":[
+	"",
+
+	"thirtythree",
+
+	"thirtyone",
+
+	"twentysix",
+
+	"twentyfive",
+
+	"twentyfour",
+
+	"fourteen",
+
+	"seventeen",
+
+	"twentyeight",
+
+	"asdllasa",
+
+	"eleven",
+
+	"thirtytwo",
+
+	"twelve",
+
+	"thirtyfour",
+
+	"ten",
+
+	"harshdepal",
+
+	"asdsad",YOYO : {
 "type": 4,
 "time_stamp": 1234,
 "online_users":[
@@ -80,7 +91,7 @@ YOYO : {
 
 	"eleven",
 
-	"thiO®Ârtytwo",
+	"thi_™­ortytwo",
 
 	"twelve",
 
@@ -118,12 +129,85 @@ YOYO : {
 
 	"bharatk",
 
-	"tO®Âwentyone",
+	"t_™­owentyone",
 
 	"ronaldo",
 
 	"twentytwo"
 	]
 }
-receiving data from server 
-YOYO : 
+{
+"type": 4,
+"time_stamp": 1234,
+"online_users":[
+	"messi",
+	"rishshah"
+	],
+"offline_users":[
+	"",
+
+	"thirtythree",
+
+	"thirtyone",
+
+	"twentysix",
+
+	"twentyfive",
+
+	"twentyfour",
+
+	"fourteen",
+
+	"seventeen",
+
+	"twentyeight",
+
+	"asdllasa",
+
+	"eleven",
+
+	"thi_™­ortytwo",
+
+	"twelve",
+
+	"thirtyfour",
+
+	"ten",
+
+	"harshdepal",
+
+	"asdsad",
+
+	"sourabh",
+
+	"thirteen",
+
+	"fifteen",
+
+	"nine",
+
+	"sixteen",
+
+	"eighteen",
+
+	"twentynine",
+
+	"nineteen",
+
+	"thirty",
+
+	"twentyseven",
+
+	"twentythree",
+
+	"twenty",
+
+	"bharatk",
+
+	"t_™­owentyone",
+
+	"ronaldo",
+
+	"twentytwo"
+	]
+}

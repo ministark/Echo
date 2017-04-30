@@ -33,8 +33,8 @@ void *get_in_addr(struct sockaddr *sa){
 string read_full(int sock_fd,int &nbytes){
 	string data = "";
 	while(true){
-		char buf[256] = {};    	// buffer for client data
-		nbytes = recv(sock_fd, buf, 256, 0); 
+		char buf[1000] = {};    	// buffer for client data
+		nbytes = recv(sock_fd, buf, 1000, 0); 
 		utdebug << "N :" << nbytes << endl;
 		if (nbytes <= 0) // got error
 	        return "";
