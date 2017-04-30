@@ -52,7 +52,6 @@ struct Auth_message{ // all message types sent by server
 
 struct User{
 	string name,status;
-	vector <Chat_message> message_list;
 	User(){
 		name = "default";
 		status = "offline";
@@ -69,8 +68,8 @@ struct UI{
 	bool auth_ack_received;
 	string LISTEN_PORT;
 	bool logged_in;
-	vector<User> user_list;
-	map <string,int> user_map;
+	vector <User> user_list;
+	map<string,int> user_map;
 	int number_online,unread_messages;
 	int my_sock_fd,listener_fd;
 	User recipient; //The person whom we are talking with
@@ -149,17 +148,38 @@ void *Display(void *thread_arg)
 			{
 				ifstream online_file("./data/online_list.txt"),offline_file("./data/offline_list.txt");
 				string name,status;vector <string> name_list,status_list;
+				int ls = ui->user_list.size();
 				while (!online_file.eof())
 				{
 					online_file >> name;
 					name_list.push_back(name);
 					status_list.push_back("online");
+					if (ui->user_map.find(name) == ui->user_map.end())
+					{
+						ui->user_map[name] = ls++;
+						ui->user_list.push_back(User(name,status));
+					}
+					else
+					{
+						int j = ui->user_map[name];
+						ui->user_list[j].status = status;
+					}
 				}
 				while (!offline_file.eof())
 				{
 					offline_file >> name;
 					name_list.push_back(name);
 					status_list.push_back("offline");
+					if (ui->user_map.find(name) == ui->user_map.end())
+					{
+						ui->user_map[name] = ls++;
+						ui->user_list.push_back(User(name,status));
+					}
+					else
+					{
+						int j = ui->user_map[name];
+						ui->user_list[j].status = status;
+					}
 				}
 				online_file.close();offline_file.close();
 				int line_x = 8,list_size = name_list.size();
@@ -287,6 +307,12 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 		else if (command == "quit") {
 			debug_input <<"program should quit" << endl;
 			ui->exit_program = true;
+		}
+		else if (command == "home") {
+			debug_input << "program should go to home" << endl;
+			ui->type = 1;
+			ui->load_ui();
+			ui->update = true;
 		}
 	}
 	else if (ui -> type == 2) // Chat Window
@@ -628,7 +654,7 @@ int main(int  argc, char  *argv[])
 	UI ui;
 	ui.LISTEN_PORT = LISTEN_PORT;
 	ifstream testhome_file,testchat_file;
-	testhome_file.open("data/online_list.txt");
+	testhome_file.open("data/user_list.txt");
 
 	/*******Connecting to actual server*********/
 	ofstream output_file("client_comm_log.txt");
@@ -681,13 +707,6 @@ int main(int  argc, char  *argv[])
 			exit(error_code);
 	/*******Completed********listener_fd*/
 	
-	while (!testhome_file.eof())
-	{
-		string name,status;
-		testhome_file >> name >> status;
-		ui.user_list.push_back(User(name,status));
-		ui.user_map[name] = k++;
-	}
 	testhome_file.close();
 	ui.my_sock_fd = my_sock_fd;ui.listener_fd = listener_fd;
 	pthread_t display_thread,input_thread,communication_thread;
