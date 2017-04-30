@@ -1,0 +1,123 @@
+TOTO :0receiving data from server 
+YOYO : {
+"type": 2,
+"time_stamp": 1234,
+"status": 1,
+"unread_list":[
+	]
+}
+{
+"type": 2,
+"time_stamp": 1234,
+"status": 1,
+"unread_list":[
+	]
+}
+receiving data from server 
+YOYO : tyfour",
+
+	"7":"fourteen",
+
+	"8":"seventeen",
+
+	"9":"twentyeight",
+
+	"10":"asdllasa",
+
+	"11":"eleven",
+
+	"12":"thirtytwo",
+
+	"13":"twelve",
+
+	"14":"thirtyfour",
+
+	"15":"ten",
+
+	"16":"harshdepal",
+
+	"17":"asdsad",
+
+	"18":"sourabh",
+
+	"19":"thirteen",
+
+	"20"o8vÿ~:"fifteen",
+
+	"21":"nine",
+
+	"22":"sixteen",
+
+	"23":"eighteen",
+
+	"24":"twentynine",
+
+	"25":"nineteen",
+
+	"26":"thirty",
+
+	"27":"twentyseven",
+
+	"28":"twentythree",
+
+	"29":"messi",
+
+	"30":"twenty",
+
+	"31":"rishshah",
+
+	"32":"twentyone",
+
+	"33":"ronaldo",
+
+o8vÿ~	"34":"twentytwo"
+	]
+}
+command
+bharatk
+ui to be updated
+uname : bharatk
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"bharatk",
+"sender":"bharatk",
+"data":"asdfsad"
+}
+asdfsad
+asdfsad
+MSG writtend
+uname : bharatk
+MSG writtend
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"bharatk",
+"sender":"bharatk",
+"data":"safdsadfsa"
+}
+safdsadfsa
+uname : bharatk
+MSG writtend
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"bharatk",
+"sender":"bharatk",
+"data":"sdf"
+}
+sdf
+uname : bharatk
+MSG writtend
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"bharatk",
+"sender":"bharatk",
+"data":"sad"
+}
+sad

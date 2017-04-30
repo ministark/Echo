@@ -1,3 +1,2 @@
 stored line list
 calculated str_line
-> hi 

@@ -8,7 +8,7 @@ Json::Value s2json(string s){
 	Json::Value root;
 	bool parsingSuccessful = reader.parse( s.c_str(), root );     //parse process
     if (!parsingSuccessful){
-        std::cout  << "Failed to parse\n" << reader.getFormattedErrorMessages();
+        utdebug  << "Failed to parse\n" << reader.getFormattedErrorMessages();
     }
     return root;
 }

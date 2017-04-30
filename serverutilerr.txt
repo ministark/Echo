@@ -1,38 +1,17 @@
 WW
-N :78
-PP
-WW
-N :0
-WW
-N :76
-PP
-WW
-N :77
-PP
-WW
-N :93
-PP
-WW
-N :101
-PP
-WW
-N :96
+N :79
 PP
 WW
 N :97
 PP
 WW
-N :105
+N :100
 PP
 WW
-N :99
+N :93
 PP
 WW
-N :102
+N :93
 PP
 WW
-N :96
-PP
-WW
-N :104
-PP
+N :0

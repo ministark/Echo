@@ -68,7 +68,7 @@ struct Auth_message{ // all message types sent by server
 		else if(type == 4){ //UPDATE
 			string s = "{\n";
 			s+= assign("type",type) + ",\n" +
-				assign("time_stamp",time_stamp) + ",\n" +
+				assign("time_stamp",time_stamp) + ",\n";
 			s+= "\"online_users\":[\n";
 			int count_online = 0;
 			for (auto it = online_users.begin(); it!=online_users.end(); ++it){
@@ -84,11 +84,12 @@ struct Auth_message{ // all message types sent by server
 				if(online_users.count(it->first)==0){
 					count_offline++;
 					s+= "\t\"" + to_string(count_offline) + "\":\"" + it->first + "\"";
-				}
-				if(count_offline != user_map.size() - online_users.size())
-					s+= ",";
-				s+="\t],\n}";		
+					if(count_offline != user_map.size() - online_users.size())
+						s+= ",\n";
+					s+= "\n";
+				}		
 			}
+			s+="\t]\n}";
 			return s;	
 		}
 	}
@@ -208,8 +209,18 @@ int main(){
 				 				}
 							}
 
-							string msg_str = msg.to_str(4);
+				 			string msg_str = msg.to_str(rec_msg["type"].asInt()) + EOM;
+				 			char *to_send1 = new char[msg_str.length() + 1];
+							strcpy(to_send1, msg_str.c_str());
+							printf("%s\n",to_send1);
+				 			if (send(curr_fd, to_send1, msg_str.length() + 1, 0) == -1) {
+								perror("send");
+							}
+							delete [] to_send1;
+
+							msg_str = msg.to_str(4);
 		 					msg_str+= EOM;
+		 					cout<<msg_str<<endl;
 				 			char *to_send = new char[msg_str.length() + 1];
 							strcpy(to_send, msg_str.c_str());
 		 			
@@ -219,15 +230,6 @@ int main(){
 								}
 		 					}
 		 					delete [] to_send;	
-
-				 			msg_str = msg.to_str(rec_msg["type"].asInt()) + EOM;
-				 			char *to_send1 = new char[msg_str.length() + 1];
-							strcpy(to_send1, msg_str.c_str());
-							printf("%s\n",to_send1);
-				 			if (send(curr_fd, to_send1, msg_str.length() + 1, 0) == -1) {
-								perror("send");
-							}
-							delete [] to_send1;
 						}
 						else if(rec_msg["type"].asInt() == 5){
 							Group_formation_message msg(rec_msg);
