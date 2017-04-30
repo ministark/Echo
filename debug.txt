@@ -14,110 +14,168 @@ YOYO : {
 	]
 }
 receiving data from server 
-YOYO : tyfour",
+YOYO : {
+"type": 4,
+"time_stamp": 1234,
+"online_users":[
+	"1":"bharatk",
+	"2":"harshdepal"
+	],
+"offline_users":[
+	"1":"hasdksadkn",
 
-	"7":"fourteen",
+	"2":"sad;asd",
 
-	"8":"seventeen",
+	"3":"sourbah",
 
-	"9":"twentyeight",
+	"4":"haksadbsajk",
 
-	"10":"asdllasa",
+	"5":"",
 
-	"11":"eleven",
+	"6":"hjsadbhjsad",
 
-	"12":"thirtytwo",
+	"7":"thirtythree",
 
-	"13":"twelve",
+	"8":"thirtyone",
 
-	"14":"thirtyfour",
+	"9"O?ß:"twentysix",
 
-	"15":"ten",
+	"10":"twentyfive",
 
-	"16":"harshdepal",
+	"11":"twentyfour",
 
-	"17":"asdsad",
+	"12":":jksadsad",
 
-	"18":"sourabh",
+	"13":"fourteen",
 
-	"19":"thirteen",
+	"14":"seventeen",
 
-	"20"o8vÿ~:"fifteen",
+	"15":"twentyeight",
 
-	"21":"nine",
+	"16":"asdllasa",
 
-	"22":"sixteen",
+	"17":"eleven",
 
-	"23":"eighteen",
+	"18":"thirtytwo",
 
-	"24":"twentynine",
+	"19":"twelve",
 
-	"25":"nineteen",
+	"20":"thirtyfour",
 
-	"26":"thirty",
+	"21":"ten",
 
-	"27":"twentyseven",
+	"22":"aslO?ßndsa",
 
-	"28":"twentythree",
+	"23":"asdsad",
 
-	"29":"messi",
+	"24":"sourabh",
 
-	"30":"twenty",
+	"25":"thirteen",
 
-	"31":"rishshah",
+	"26":"fifteen",
 
-	"32":"twentyone",
+	"27":"harshdepak",
 
-	"33":"ronaldo",
+	"28":"nine",
 
-o8vÿ~	"34":"twentytwo"
+	"29":"sixteen",
+
+	"30":"eighteen",
+
+	"31":"twentynine",
+
+	"32":"nineteen",
+
+	"33":"thirty",
+
+	"34":"twentyseven",
+
+	"35":"twentythree",
+
+	"O?ß36":"messi",
+
+	"37":"twenty",
+
+	"38":"rishshah",
+
+	"39":"twentyone",
+
+	"40":"ronaldo",
+
+	"41":"twentytwo"
 	]
 }
 command
 bharatk
 ui to be updated
-uname : bharatk
-receiving data from server 
-YOYO : {
-"type": 1,
-"time_stamp": 1234,
-"receiver":"bharatk",
-"sender":"bharatk",
-"data":"asdfsad"
-}
-asdfsad
-asdfsad
-MSG writtend
-uname : bharatk
+uname : harshdepal
 MSG writtend
 receiving data from server 
 YOYO : {
 "type": 1,
 "time_stamp": 1234,
-"receiver":"bharatk",
+"receiver":"harshdepal",
 "sender":"bharatk",
-"data":"safdsadfsa"
+"data":"bhsadf"
 }
-safdsadfsa
-uname : bharatk
+bhsadf
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"harshdepal",
+"sender":"bharatk",
+"data":"sdfksd"
+}
+sdfksd
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"harshdepal",
+"sender":"bharatk",
+"data":"sd"
+}
+sd
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"harshdepal",
+"sender":"bharatk",
+"data":"sd"
+}
+sd
+uname : harshdepal
 MSG writtend
 receiving data from server 
 YOYO : {
 "type": 1,
 "time_stamp": 1234,
-"receiver":"bharatk",
+"receiver":"harshdepal",
 "sender":"bharatk",
-"data":"sdf"
+"data":"bharsad"
 }
-sdf
-uname : bharatk
+bharsad
+uname : harshdepal
 MSG writtend
 receiving data from server 
 YOYO : {
 "type": 1,
 "time_stamp": 1234,
-"receiver":"bharatk",
+"receiver":"harshdepal",
 "sender":"bharatk",
-"data":"sad"
+"data":"bharatk"
 }
-sad
+bharatk
+uname : harshdepal
+MSG writtend
+receiving data from server 
+YOYO : {
+"type": 1,
+"time_stamp": 1234,
+"receiver":"harshdepal",
+"sender":"bharatk",
+"data":"my name is bharatkhsa dfdfksdslfslsfklsdfsadkfsdklfss"
+}
+my name is bharatkhsa dfdfksdslfslsfklsdfsadkfsdklfss

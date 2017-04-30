@@ -1,2 +1,17 @@
 stored line list
-calculated str_line
+4 strline 19 list_len 
+>sdf
+<sdf
+>sad
+<sad
+>asdasd
+<bhsadf
+<sdfksd
+<sd
+<sd
+>asdasdnj
+<bharsad
+>sdaad
+<bharatk
+>asdasdnkjasdnkjasndkj
+<my name is bharatkhsa dfdfksdslfslsfklsdfsadkfsdklfss

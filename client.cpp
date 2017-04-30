@@ -169,7 +169,7 @@ void *Display(void *thread_arg)
 					ui->edit_display(j,1,"                                                                              ");
 				string line;
 				vector <string> line_list;
-				ifstream myfile("./chat/test.echo");
+				ifstream myfile("./chat/"+ui->recipient.name+".echo");
 				int start;
 				while (getline(myfile,line))
 					line_list.push_back(line);
@@ -179,31 +179,39 @@ void *Display(void *thread_arg)
 				{
 					if(lk-((line_list[j].length()-1)/50)+1  < 7) 
 					{
-						lk -= ((line_list[j].length()-1)/50)+1;
 						str_line = j+1;
 						break;
 					}
+					lk -= ((line_list[j].length()-1)/50)+1;
 				}
-				debug_chat << "calculated str_line" << endl;
+				debug_chat << str_line << " strline " <<  list_len << " list_len " << endl;
 				int ck = 7;
-				for(int j = str_line; str_line < list_len; j++)
+				for(int j = str_line; j < list_len; j++)
 				{
 					debug_chat << line_list[j] << endl;
-					if(line_list[j][0] = '<')
-						start = 26;
+					if(line_list[j][0] == '<')
+						start = 28;
 					else
-						start = 4;
+						start = 3;
 					int line_len = line_list[j].length();
-					line =  line_list[j].substr(1);
-					while (line_len > 0 and ck < 22)
+					line = line_list[j].substr(2);
+					if (line_len <= 50 and start == 28)
 					{
-						ui->edit_display(ck,start,line.substr(0,min(50,line_len)));
-						line_len -= min(50,line_len);
-						if (line_len > 0)
-							line = line.substr(50);
+						ui->edit_display(ck,80-line_len,line);
 						ck++;
 					}
-					if (ck <= 22)
+					else
+					{
+						while (line_len > 0 and ck < 22)
+						{
+							ui->edit_display(ck,start,line.substr(0,min(50,line_len)));
+							line_len -= min(50,line_len);
+							if (line_len > 0)
+								line = line.substr(50);
+							ck++;
+						}
+					}
+					if (ck >= 22)
 						break;
 				}
 				// Process messages from user->messages and paste it in display
@@ -534,6 +542,7 @@ void *CommunicationHandler(void *thread_arg)
          			myfile<< "<"<<msg.data<<"\n";
          			debug<<msg.data<<endl;
          			myfile.close();
+         			ui->update = true;
          		}
          		else if (rec_msg["type"].asInt() == 2 ){
          			debug << data << endl;
@@ -543,6 +552,7 @@ void *CommunicationHandler(void *thread_arg)
          			for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
 						debug<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
 					}
+					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 3 ){
          			debug << data << endl;
@@ -558,6 +568,7 @@ void *CommunicationHandler(void *thread_arg)
 					}
 			        myfile2.close();
 			        debug << "online and offline users updated";
+			        ui -> update = true;
          		}
 	         	else if(rec_msg["type"].asInt() == 4){
 	         		Auth_message msg(rec_msg);

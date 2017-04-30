@@ -1,19 +1,27 @@
-N :256
+N :70
 PP
 N :256
 PP
 N :256
 PP
-N :26
+N :256
+PP
+N :114
 PP
 Failed to parse
-* Line 1, Column 1
-  Syntax error: value, object or array expected.
-N :97
+* Line 5, Column 5
+  Missing ',' or ']' in array declaration
+N :99
+PP
+N :99
+PP
+N :95
+PP
+N :95
 PP
 N :100
 PP
-N :93
+N :100
 PP
-N :93
+N :146
 PP
