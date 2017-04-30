@@ -513,6 +513,7 @@ void *CommunicationHandler(void *thread_arg)
         }
         
         if (FD_ISSET(self_sock_id, &read_fds)){ // Data from other thread
+        	debug << "WTF\n" << endl; 
         	int nbytes = 0;
            	string data = read_full(self_sock_id,nbytes);
            	if(nbytes == 0){
@@ -536,80 +537,71 @@ void *CommunicationHandler(void *thread_arg)
          	}
         }
         else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
-        	    	debug<<"receiving data from server "<<endl;
+        	debug<<"Receiving data from server\n "<<endl;
         	int nbytes = 0;
-           	string data = read_full(my_sock_fd,nbytes);\
-           	debug << "YOYO : "<< data << endl;
+           	string data = read_full(my_sock_fd,nbytes);
+           	debug << "READ FROM SERVER : "<< nbytes << " ::: " << data << endl;
            	if(nbytes == 0){
            		close(my_sock_fd);	// close the curr socket 
 		    	FD_CLR(my_sock_fd, &master_fds); // remove from master set
 		    	// printf("selectserver: socket %d hung up\n", my_sock_fd);
            	}
-           	else if(nbytes < 0)
-           	{
+           	else if(nbytes < 0){
            		debug << "recv problem";
            		exit(1);
            	}
             else{ //Process received data	
+         		debug << "Data READ FROM SERVER" << endl;
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
+         			debug <<"IN CLIENT(TYPE = 1) :\n" <<data << endl;
          			Chat_message msg(rec_msg);
+					
 					ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
          			myfile<< "<"<<msg.data<<"\n";
          			debug<<msg.data<<endl;
          			myfile.close();
+         			
+         			debug << "Done with type 1" << endl;
          			ui->update = true;
          		}
-         		else if (rec_msg["type"].asInt() == 2 ){
-         			debug << data << endl;
+         		if (rec_msg["type"].asInt() == 2 ){
+         			debug <<"IN CLIENT(TYPE = 2) :\n" <<data << endl;
          			Auth_message msg(rec_msg);
          			ui->logged_in  = rec_msg["status"].asBool();
          			ui->auth_ack_received = true;
-<<<<<<< HEAD
-         			ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
-     				// for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-					// 	myfile<<"<"<<rec_msg["unread_list"][i].asString()<<endl;
-					// }
-					myfile.close();
-=======
-					// ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
-					// for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-					// 	myfile<<"<"<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
-					// }
-					// myfile.close();
->>>>>>> fixing
+         			
+         			debug << "Unread size :" << rec_msg["unread_list"].size() << endl;
+     				// 	for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
+					// 	debug << "In the for loop" << endl; 	
+					//  	ofstream myfile("./chat/"+rec_msg["unread_list"][i]["sender"].asString() +".echo",fstream::out|fstream::app);
+					//  	myfile<<"<"<<rec_msg["unread_list"][i]["data"].asString()<<endl;
+					// 	myfile.close();
+					// }	
+					debug << "Done with type 2" << endl;
 					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 4 ){
-         			debug << data << endl;
+         			debug <<"IN CLIENT(TYPE = 4) :\n" <<data << endl;
          			Auth_message msg(rec_msg);
-<<<<<<< HEAD
+         			
          			ofstream myfile("./data/online_list.txt", fstream::out);
          			for (int i = 0; i < rec_msg["online_users"].size(); ++i){
 						myfile<<rec_msg["online_users"][i].asString()<<endl;
 					}
 					myfile.close();
+					
 					ofstream myfile2("./data/offline_list.txt", fstream::out);
 					for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
 						myfile2<<rec_msg["offline_users"][i].asString()<<endl;
 					}
 			        myfile2.close();
-=======
-					// ofstream myfile("./data/online_list.txt", fstream::out);
-					// for (int i = 0; i < rec_msg["online_users"].size(); ++i){
-					// 	myfile<<rec_msg["online_users"][to_string(i)].asString()<<endl;
-					// }
-					// myfile.close();
-					// ofstream myfile2("./data/offline_list.txt", fstream::out);
-					// for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
-					// 	myfile2<<rec_msg["offline_users"][to_string(i)].asString()<<endl;
-					// }
-					// myfile2.close();
->>>>>>> fixing
-			        debug << "online and offline users updated";
+			        
+			        debug << "online and offline users updated" << endl;
 			        ui -> update = true;
          		}
 	         	else if(rec_msg["type"].asInt() == 3){
+	         		debug <<"IN CLIENT(TYPE =3) :\n" <<data << endl;
 	         		Auth_message msg(rec_msg);
 	         	} 	
          	}
@@ -649,7 +641,6 @@ int main(int  argc, char  *argv[])
 		hints.ai_socktype = SOCK_STREAM;
 		
 		int tmp = getaddrinfo(server_name.c_str(), SERVER_PORT, &hints, &servinfo);
-		debug << "TOTO :" << tmp; 
 		if (tmp != 0){
 			output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 			return 0;
