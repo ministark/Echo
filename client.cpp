@@ -189,12 +189,12 @@ void *Display(void *thread_arg)
 				for(int j = str_line; j < list_len; j++)
 				{
 					debug_chat << line_list[j] << endl;
-					if(line_list[j][0] == '<')
+					if(line_list[j][0] == '>')
 						start = 28;
 					else
 						start = 3;
 					int line_len = line_list[j].length();
-					line = line_list[j].substr(2);
+					line = line_list[j].substr(1);
 					if (line_len <= 50 and start == 28)
 					{
 						ui->edit_display(ck,80-line_len,line);
