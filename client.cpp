@@ -576,11 +576,12 @@ void *CommunicationHandler(void *thread_arg)
          			ui->logged_in  = rec_msg["status"].asBool();
          			ui->auth_ack_received = true;
 
-					// ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
-					// for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-					// 	myfile<<"<"<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
-					// }
-					// myfile.close();
+					for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
+						ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
+						myfile<<"<"<<rec_msg["unread_list"][i].get("data","FO").asString() <<endl;
+						myfile.close();
+					}
+					
 					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 4 ){
