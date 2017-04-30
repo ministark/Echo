@@ -263,7 +263,7 @@ void *Display(void *thread_arg)
 	pthread_exit(NULL);
 }
 
-bool authenticate(UI * ui,string username,string password)
+int authenticate(UI * ui,string username,string password)
 {
 	Auth_message msg(username,password);
 	string data = msg.to_str(2) + EOM;
@@ -276,7 +276,7 @@ bool authenticate(UI * ui,string username,string password)
     }
     delete [] to_send;
     while(!ui->auth_ack_received);
-    return ui->logged_in;
+   		return ui->logged_in;
 }	
 
 void ProcessInput(UI *ui,int self_client_sock_fd)
@@ -317,6 +317,21 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 		else if (command == "home") {
 			debug_input << "program should go to home" << endl;
 			ui->type = 1;
+			ui->load_ui();
+			ui->update = true;
+		}
+		else if (command == "logout")
+		{
+			Auth_message msg(ui->uname);
+			string data  = msg.to_str(3) + EOM;
+			char *to_send = new char[data.length() + 1];
+			strcpy(to_send, data.c_str());                				
+			if (send(ui->my_sock_fd, to_send, data.length() + 1, 0) == -1) 
+			{
+	            perror("send");
+	            exit(1);
+	        }
+			ui->type = 0;
 			ui->load_ui();
 			ui->update = true;
 		}
@@ -439,14 +454,17 @@ void *InputHandler(void *thread_arg)
 				}
 				else if (password_read)
 				{
-					if (authenticate(ui,username,password))
+					int auth_status = authenticate(ui,username,password);
+					if (auth_status == 1)
 					{
 						ui->type = 1;
 						ui->load_ui();
 						ui->uname = username;
+						ui->edit_display(20,26,"Successful Login" );
 						ui->update = true;
+						this_thread::sleep_for(chrono::milliseconds(1000));
 					}
-					else
+					else if (auth_status == 0)
 					{
 						username = "";
 						password = "";
@@ -454,7 +472,15 @@ void *InputHandler(void *thread_arg)
 						ui->cursor_y = 39;
 						ui->edit_display(13,39,"                ");
 						ui->edit_display(15,39,"                ");
+						ui->edit_display(20,26,"Invalid password");
 						ui->update = true;
+						this_thread::sleep_for(chrono::milliseconds(1000));
+ 					}
+ 					else if (auth_status == 2)
+ 					{
+ 						ui->edit_display(20,26,"Registration Successful");
+						ui->update = true;
+						this_thread::sleep_for(chrono::milliseconds(1000));
  					}
 				}
 			}
@@ -605,7 +631,7 @@ void *CommunicationHandler(void *thread_arg)
          		else if (rec_msg["type"].asInt() == 2 ){
          			debug << data << endl;
          			Auth_message msg(rec_msg);
-         			ui->logged_in  = rec_msg["status"].asBool();
+         			ui->logged_in  = rec_msg["status"].asInt();
          			ui->auth_ack_received = true;
 
 					for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
