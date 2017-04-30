@@ -514,7 +514,6 @@ int main(int  argc, char  *argv[])
   		LISTEN_PORT = argv[2];
   		server_name = argv[1];
   	}
-  	cout << LISTEN_PORT << endl;
 	initscr();
     cbreak();
     noecho();
@@ -535,6 +534,7 @@ int main(int  argc, char  *argv[])
 		hints.ai_socktype = SOCK_STREAM;
 		
 		int tmp = getaddrinfo(server_name.c_str(), SERVER_PORT, &hints, &servinfo);
+		debug << "TOTO :" << tmp; 
 		if (tmp != 0){
 			output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 			return 0;
