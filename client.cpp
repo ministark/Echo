@@ -205,7 +205,7 @@ void *Display(void *thread_arg)
 					ui->edit_display(j,1,"                                                                              ");
 				string line;
 				vector <string> line_list;
-				ifstream myfile("./chat/"+ui->recipient.name+".echo");
+				ifstream myfile("./chat/"+ui->uname+"_"+ui->recipient.name+".echo");
 				int start;
 				while (getline(myfile,line))
 					line_list.push_back(line);
@@ -329,7 +329,7 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
             exit(1);
         }
         
-    	ofstream myfile("./chat/"+ui->recipient.name+".echo", fstream::out | fstream::app);
+    	ofstream myfile("./chat/"+ui->uname+"_"+ui->recipient.name+".echo", fstream::out | fstream::app);
         myfile << ">" << msg.data<<"\n";
         myfile.close();
 
@@ -438,8 +438,8 @@ void *InputHandler(void *thread_arg)
 					if (authenticate(ui,username,password))
 					{
 						ui->type = 1;
-						ui->uname = username;
 						ui->load_ui();
+						ui->uname = username;
 						ui->update = true;
 					}
 					else
@@ -592,7 +592,7 @@ void *CommunicationHandler(void *thread_arg)
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
          			Chat_message msg(rec_msg);
-					ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
+					ofstream myfile("./chat/"+ui->uname+"_"+msg.sender+".echo",fstream::out|fstream::app);
          			myfile<< "<"<<msg.data<<"\n";
          			debug<<msg.data<<endl;
          			myfile.close();
