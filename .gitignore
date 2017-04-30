@@ -1,6 +1,4 @@
 # Executables
 *.out
 *.echo
-serverutilerr.txt
-clientutilerr.txt
-debug_chat.txt
+*.txt
