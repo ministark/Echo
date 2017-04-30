@@ -205,7 +205,7 @@ void *Display(void *thread_arg)
 					ui->edit_display(j,1,"                                                                              ");
 				string line;
 				vector <string> line_list;
-				ifstream myfile("./chat/"+ui->recipient.name+".echo");
+				ifstream myfile("./chat/"+ui->uname+"_"+ui->recipient.name+".echo");
 				int start;
 				while (getline(myfile,line))
 					line_list.push_back(line);
@@ -329,7 +329,7 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
             exit(1);
         }
         
-    	ofstream myfile("./chat/"+ui->recipient.name+".echo", fstream::out | fstream::app);
+    	ofstream myfile("./chat/"+ui->uname+"_"+ui->recipient.name+".echo", fstream::out | fstream::app);
         myfile << ">" << msg.data<<"\n";
         myfile.close();
 
@@ -438,8 +438,8 @@ void *InputHandler(void *thread_arg)
 					if (authenticate(ui,username,password))
 					{
 						ui->type = 1;
-						ui->uname = username;
 						ui->load_ui();
+						ui->uname = username;
 						ui->update = true;
 					}
 					else
@@ -592,7 +592,7 @@ void *CommunicationHandler(void *thread_arg)
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
          			Chat_message msg(rec_msg);
-					ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
+					ofstream myfile("./chat/"+ui->uname+"_"+msg.sender+".echo",fstream::out|fstream::app);
          			myfile<< "<"<<msg.data<<"\n";
          			debug<<msg.data<<endl;
          			myfile.close();
@@ -605,11 +605,19 @@ void *CommunicationHandler(void *thread_arg)
          			ui->auth_ack_received = true;
 
 					for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
+<<<<<<< HEAD
 						ofstream myfile("./chat/"+rec_msg["unread_list"][i].get("sender","XX").asString() +".echo",fstream::out|fstream::app);
 						myfile<<"<"<<rec_msg["unread_list"][i].get("data","FO").asString() <<endl;
 						myfile.close();
 					}
 					
+=======
+						debug<<rec_msg["unread_list"][i].get("sender","XXX").asString()<<endl;
+						ofstream myfile("./chat/"+rec_msg["unread_list"][i].get("sender","XXX").asString()+".echo",fstream::out|fstream::app);
+						myfile<<"<"<<rec_msg["unread_list"][i].get("data","------------------------").asString()<<endl;
+						myfile.close();
+					}
+>>>>>>> 871b9b04c73e4df2d2f417b1235ed620c7b6c1ea
 					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 4 ){
