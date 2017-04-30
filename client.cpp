@@ -134,7 +134,7 @@ void RefreshDisplay(char display[][80]){
 
 void *Display(void *thread_arg)
 {
-	this_thread::sleep_for(chrono::milliseconds(5000));
+	this_thread::sleep_for(chrono::milliseconds(1000));
 	UI *ui = (UI *)thread_arg;
 	while (!ui->exit_program)
 	{
@@ -147,24 +147,35 @@ void *Display(void *thread_arg)
 			}
 			else if (ui->type == 1) // Home 
 			{
-				//ui->edit_display(2,40,"Active Echo : " + string(itoa(ui->number_online)));
-				//ui->edit_display(2,60,"Unread Echo : " + string(itoa(ui->unread_messages)));
-				int line_x = 8,list_size = ui->user_list.size();
+				ifstream online_file("./data/online_list.txt"),offline_file("./data/offline_list.txt");
+				string name,status;vector <string> name_list,status_list;
+				while (!online_file.eof())
+				{
+					online_file >> name;
+					name_list.push_back(name);
+					status_list.push_back("online");
+				}
+				while (!offline_file.eof())
+				{
+					offline_file >> name;
+					name_list.push_back(name);
+					status_list.push_back("offline");
+				}
+				online_file.close();offline_file.close();
+				int line_x = 8,list_size = name_list.size();
+				ui->maxscroll = max(0,list_size - 11);
 				for (int j=8; j<20; j++)
 					ui->edit_display(j,25,"                                            ");
 				for (int j=ui->scroll; j<min(int(list_size),ui->scroll+12); j++)
 				{
-					User user = ui->user_list[j];
-					ui->edit_display(line_x,25,user.name);
-					ui->edit_display(line_x,50,user.status);
+					name = name_list[j];status = status_list[j];
+					ui->edit_display(line_x,25,name);
+					ui->edit_display(line_x,50,status);
 					line_x++;
 				}
-
-				// Display number of online-user by iterating over map
 			}
 			else if (ui->type == 2) // Chat Window
 			{
-				// Check Notification Bar
 				ui->edit_display(2,3,"                ");
 				ui->edit_display(2,3,ui->recipient.name);
 				ofstream debug_chat("debug_chat.txt");
@@ -218,12 +229,10 @@ void *Display(void *thread_arg)
 						break;
 				}
 				myfile.close();
-				// Process messages from user->messages and paste it in display
 			}
 			RefreshDisplay(ui->display);
 			ui->update = false;
 		}
-		//mtx_display.unlock();
 	}
 	pthread_exit(NULL);
 }
@@ -256,18 +265,16 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 		r--;
 	if (l > r)
 		return;
-	//debug<<command<<endl;
 	command = command.substr(l,r-l+1);
-	
+	ofstream debug_input("debug_input.txt");
 	if (command[0] == ':')
 	{		
-	//	debug<<"inside  :  "<<endl;
 		command = command.substr(1);
-		debug<<"command"<<endl;
-		
-		if(command.substr(0,4) == "chat") {
+		debug_input << "command" << endl;
+		debug_input << command << endl;
+		if(command.substr(0,5) == "chat ") {
 			command = command.substr(5);
-			debug<< command <<endl;
+			debug_input << command << endl;
 			auto it = ui->user_map.find(command);
 			if (it == ui->user_map.end()) 
 				return;
@@ -275,9 +282,12 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 			ui->type = 2;
 			ui->load_ui();
 			ui->update = true;
-			debug<<"ui to be updated"<<endl;
+			debug_input << "ui to be updated" << endl;
 		}
-
+		else if (command == "quit") {
+			debug_input <<"program should quit" << endl;
+			ui->exit_program = true;
+		}
 	}
 	else if (ui -> type == 2) // Chat Window
 	{	debug<<"uname : "<<ui->uname<<endl;
@@ -306,7 +316,7 @@ void *InputHandler(void *thread_arg)
 {
 
 	UI *ui = (UI *)thread_arg;
-	this_thread::sleep_for(chrono::milliseconds(100));
+	this_thread::sleep_for(chrono::milliseconds(50));
 	/*******Connecting to actual server*********/
 			//ofstream output_file("client_comm_log.txt");
 			struct addrinfo hints1, *servinfo1, *p1;
@@ -435,7 +445,7 @@ void *InputHandler(void *thread_arg)
 				}	
 				else if (ch == KEY_DOWN)
 				{
-					if (ui->type == 1 and ui->scroll < ui->user_list.size())
+					if (ui->type == 1 and ui->scroll < ui->maxscroll)
 					{
 						ui->scroll++;
 						ui->update = true;
@@ -505,7 +515,7 @@ void *CommunicationHandler(void *thread_arg)
 		//close(listener_fd);
 	}
 
-    while(true){// main loop 
+    while(!ui->exit_program){// main loop 
         read_fds = master_fds; // copy it
         if (select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1) {//Timeout not set so no check for 0	
             perror("select");
@@ -710,6 +720,11 @@ int main(int  argc, char  *argv[])
 		endwin();
 		return 0;
 	}
-	pthread_exit(NULL);
+	while (!ui.exit_program)
+	{
+		this_thread::sleep_for(chrono::milliseconds(50));
+	}
+	clear();
 	endwin();
+	return 0;
 }
