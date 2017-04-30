@@ -1,9 +1,9 @@
 #include "serverutils.h"
-
+#include <fstream>
 #include <unordered_map>
 
 #define LISTEN_PORT "9034"   // port we're listening on
-
+#define EOM "```"
 struct User_data{
 	string password;
 	int socket_id;
@@ -20,7 +20,7 @@ t_user_map user_map;
 typedef unordered_map<string,set<string> > t_group_map;
 t_group_map group_map;
 
-set<string>online_users;
+set<string> online_users;
 
 struct Auth_message{ // all message types sent by server
 	int time_stamp;
@@ -32,10 +32,12 @@ struct Auth_message{ // all message types sent by server
 			time_stamp = root["time_stamp"].asInt();
 			password = root["password"].asString();
 			sender = root["sender"].asString();
+			receiver = sender;
 		}
 		else if (type == 3){ // LOGOUT
 			time_stamp = root["time_stamp"].asInt();
 			sender = root["sender"].asString();
+			receiver = sender;
 		}
 	}
 	string to_str(int type){
@@ -51,16 +53,6 @@ struct Auth_message{ // all message types sent by server
 					if(i != user_map[receiver].unread_list.size() - 1)
 						s+= ",";
 					s+="\n";
-				}
-				
-				s+= "\t],\n\"online_users\":[\n";
-				int count_online = 0;
-				for (auto it = online_users.begin(); it!=online_users.end(); ++it){
-					count_online++;
-					s+= "\t\"" + to_string(count_online) + "\":\"" + *it + "\"";
-					if(online_users.size()!=count_online)
-						s+= ",";
-					s+="\n";		
 				}
 			}
 			s+= "\t]\n}";		
@@ -86,7 +78,17 @@ struct Auth_message{ // all message types sent by server
 					s+= ",";
 				s+="\n";		
 			}
-			s+= "\t]\n}";
+			s+= "\t],\n\"offline_users\":[\n";
+			int count_offline = 0;
+			for (auto it = user_map.begin(); it!=user_map.end(); ++it){
+				if(online_users.count(it->first)==0){
+					count_offline++;
+					s+= "\t\"" + to_string(count_offline) + "\":\"" + it->first + "\"";
+				}
+				if(count_offline != user_map.size() - online_users.size())
+					s+= ",";
+				s+="\t],\n}";		
+			}
 			return s;	
 		}
 	}
@@ -101,11 +103,18 @@ bool authenticate(string username,string password){
 }
 
 int main(){
-	User_data u1,u2,u3,u4;
-	user_map["Rishabh"] = u1;
-	user_map["Sourabh"] = u2;
-	user_map["Harsh"] = u3;
-	user_map["messi"] = u4;
+
+	User_data u[100];
+	int k =0;
+	ifstream users_file;
+	users_file.open("data/user_list.txt");
+	while (!users_file.eof())
+	{
+		string name;
+		users_file >> name;
+		user_map[name] = u[k++];
+	}
+	users_file.close();
 
 	int error_code = 0;
 	int listener_fd = get_listner(LISTEN_PORT,error_code);
@@ -153,6 +162,10 @@ int main(){
 				   	string data = read_full(curr_fd,nbytes);
 				   	cout << data << endl;
 				   	if(nbytes == 0){
+				   		for(auto it = user_map.begin(); it!= user_map.end(); ++it){
+				   			if(it->second.socket_id == curr_fd)
+				   				online_users.erase(it->first);
+				   		}
 				   		close(curr_fd);	// close the curr socket 
 						FD_CLR(i, &master_fds); // remove from master set
 						printf("selectserver: socket %d hung up\n", curr_fd);
@@ -168,6 +181,7 @@ int main(){
 				 			if(online_users.count(msg.receiver) == 0)// Receiver Offline
 				 				user_map[msg.receiver].unread_list.push_back(msg);
 				 			else{// Receiver Online
+				 				data = data + EOM;
 				 				char *to_send = new char[data.length() + 1];
 								strcpy(to_send, data.c_str());								
 				 				if (send(user_map[msg.receiver].socket_id, to_send, data.length() + 1, 0) == -1) {
@@ -190,30 +204,30 @@ int main(){
 							else{
 								if(online_users.count(msg.sender) == 0){
 				 					msg.status = 1;
-				 					online_users.erase(msg.sender);
-
-				 					string msg_str = msg.to_str(4);
-				 					msg_str+= "```";
-						 			char *to_send = new char[msg_str.length() + 1];
-									strcpy(to_send, msg_str.c_str());
-				 			
-				 					for (auto it = online_users.begin(); it != online_users.end(); ++it){
-				 						if (send(user_map[*it].socket_id, to_send, msg_str.length() + 1, 0) == -1) {
-											perror("send");
-										}
-				 					}
-				 					delete [] to_send;		
+				 					online_users.erase(msg.sender);	
 				 				}
 							}
-				 			string msg_str = msg.to_str(rec_msg["type"].asInt());
-				 			msg_str+= "```";
+
+							string msg_str = msg.to_str(4);
+		 					msg_str+= EOM;
 				 			char *to_send = new char[msg_str.length() + 1];
 							strcpy(to_send, msg_str.c_str());
-							printf("%s\n",to_send);
-				 			if (send(curr_fd, to_send, msg_str.length() + 1, 0) == -1) {
+		 			
+		 					for (auto it = online_users.begin(); it != online_users.end(); ++it){
+		 						if (send(user_map[*it].socket_id, to_send, msg_str.length() + 1, 0) == -1) {
+									perror("send");
+								}
+		 					}
+		 					delete [] to_send;	
+
+				 			msg_str = msg.to_str(rec_msg["type"].asInt()) + EOM;
+				 			char *to_send1 = new char[msg_str.length() + 1];
+							strcpy(to_send1, msg_str.c_str());
+							printf("%s\n",to_send1);
+				 			if (send(curr_fd, to_send1, msg_str.length() + 1, 0) == -1) {
 								perror("send");
 							}
-							delete [] to_send;
+							delete [] to_send1;
 						}
 						else if(rec_msg["type"].asInt() == 5){
 							Group_formation_message msg(rec_msg);

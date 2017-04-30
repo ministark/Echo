@@ -17,7 +17,6 @@ using namespace std;
 #define UPPER_KEY 127
 #define SERVER_PORT "9034"  // port we're listening on
 #define MAXDATASIZE 256 	// max number of bytes we can get at once 
-#define LISTEN_PORT "9033"	//local port for thread intercommunication
 
 #define EOM "```"
 
@@ -68,6 +67,7 @@ struct UI{
 	int type,cursor_x,cursor_y,scroll;
 	bool update,exit_program;
 	bool auth_ack_received;
+	string LISTEN_PORT;
 	bool logged_in;
 	vector<User> user_list;
 	map <string,int> user_map;
@@ -280,7 +280,7 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
         }
         
     	ofstream myfile("./chat/"+ui->recipient.name+".echo", fstream::out | fstream::app);
-        myfile << msg.sender << " : " << msg.data<<"\n";
+        myfile << ">" << msg.data<<"\n";
         myfile.close();
 
         debug<<"MSG writtend"<<endl;
@@ -292,6 +292,8 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 
 void *InputHandler(void *thread_arg)
 {
+
+	UI *ui = (UI *)thread_arg;
 	this_thread::sleep_for(chrono::milliseconds(100));
 	/*******Connecting to actual server*********/
 			//ofstream output_file("client_comm_log.txt");
@@ -300,7 +302,7 @@ void *InputHandler(void *thread_arg)
 			hints1.ai_family = AF_INET;
 			hints1.ai_socktype = SOCK_STREAM;
 			
-			int tmp = getaddrinfo("localhost", LISTEN_PORT, &hints1, &servinfo1);
+			int tmp = getaddrinfo("localhost", ui->LISTEN_PORT.c_str(), &hints1, &servinfo1);
 			if (tmp != 0){
 				//output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 				return NULL;
@@ -331,7 +333,7 @@ void *InputHandler(void *thread_arg)
 			// inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), serverIP, sizeof serverIP);
 			// printf("client: connecting to %s\n", serverIP);
 	/*******Connected*********/
-	UI *ui = (UI *)thread_arg;
+	
 	bool command_start = false,username_read,password_read;
 	int ch;
 	string username,password;
@@ -512,7 +514,8 @@ void *CommunicationHandler(void *thread_arg)
         else if(FD_ISSET(my_sock_fd, &read_fds)){ // Data from server
         	    	debug<<"receiving data from server "<<endl;
         	int nbytes = 0;
-           	string data = read_full(my_sock_fd,nbytes);
+           	string data = read_full(my_sock_fd,nbytes);\
+           	debug << "YOYO : "<< data << endl;
            	if(nbytes == 0){
            		close(my_sock_fd);	// close the curr socket 
 		    	FD_CLR(my_sock_fd, &master_fds); // remove from master set
@@ -527,8 +530,9 @@ void *CommunicationHandler(void *thread_arg)
          		Json::Value rec_msg = s2json(data);
          		if(rec_msg["type"].asInt() == 1){ // Chat_message
          			Chat_message msg(rec_msg);
-					ofstream myfile("./chat/"+msg.sender+".echo",ios::app);
-         			myfile<< msg.sender <<" : "<<msg.data<<"\n";
+					ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
+         			myfile<< "<"<<msg.data<<"\n";
+         			debug<<msg.data<<endl;
          			myfile.close();
          		}
          		else if (rec_msg["type"].asInt() == 2 ){
@@ -540,7 +544,22 @@ void *CommunicationHandler(void *thread_arg)
 						debug<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
 					}
          		}
-	         	else if(rec_msg["type"].asInt() == 2 or rec_msg["type"].asInt() == 3 or rec_msg["type"].asInt() == 4){
+         		else if(rec_msg["type"].asInt() == 3 ){
+         			debug << data << endl;
+         			Auth_message msg(rec_msg);
+         			ofstream myfile("./data/online_list.txt", fstream::out);
+         			for (int i = 0; i < rec_msg["online_users"].size(); ++i){
+						myfile<<rec_msg["online_users"][to_string(i)].asString()<<endl;
+					}
+					myfile.close();
+					ofstream myfile2("./data/offline_list.txt", fstream::out);
+					for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
+						myfile2<<rec_msg["offline_users"][to_string(i)].asString()<<endl;
+					}
+			        myfile2.close();
+			        debug << "online and offline users updated";
+         		}
+	         	else if(rec_msg["type"].asInt() == 4){
 	         		Auth_message msg(rec_msg);
 	         	} 	
          	}
@@ -548,8 +567,18 @@ void *CommunicationHandler(void *thread_arg)
     }
 	pthread_exit(NULL);
 }
-int main()
+int main(int  argc, char  *argv[])
 {
+	string LISTEN_PORT;
+	string server_name;
+	if ( argc != 3 ){
+    	printf("usage :- ./client server_hostname port \n");
+		return 0;
+	}
+  	else{
+  		LISTEN_PORT = argv[2];
+  		server_name = argv[1];
+  	}
 	initscr();
     cbreak();
     noecho();
@@ -558,6 +587,7 @@ int main()
     keypad(stdscr, TRUE);
 	int d_thread,i_thread,c_thread;
 	UI ui;
+	ui.LISTEN_PORT = LISTEN_PORT;
 	ifstream testhome_file,testchat_file;
 	testhome_file.open("data/online_list.txt");
 
@@ -568,7 +598,8 @@ int main()
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		
-		int tmp = getaddrinfo("localhost", SERVER_PORT, &hints, &servinfo);
+		int tmp = getaddrinfo(server_name.c_str(), SERVER_PORT, &hints, &servinfo);
+		debug << "TOTO :" << tmp; 
 		if (tmp != 0){
 			output_file << "get addrinfo: " << gai_strerror(tmp) << endl;
 			return 0;
@@ -605,8 +636,8 @@ int main()
 	/*******Connected********my_sock_fd*/
 
 	/*******Complete the connection for other thread*********/
-		int error_code = 0,k = 0;
-		int listener_fd = get_listner(LISTEN_PORT,error_code);
+		int error_code = 0, k = 0;
+		int listener_fd = get_listner(LISTEN_PORT.c_str() ,error_code);
 		if(listener_fd == -1)
 			exit(error_code);
 	/*******Completed********listener_fd*/
