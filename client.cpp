@@ -154,6 +154,8 @@ void *Display(void *thread_arg)
 				while (!online_file.eof())
 				{
 					online_file >> name;
+					if ((!name_list.empty() and name_list.back() == name) or name == ui->uname)
+						continue;
 					name_list.push_back(name);
 					status_list.push_back("online");
 					if (ui->user_map.find(name) == ui->user_map.end())
@@ -170,6 +172,8 @@ void *Display(void *thread_arg)
 				while (!offline_file.eof())
 				{
 					offline_file >> name;
+					if ((!name_list.empty() and name_list.back() == name) or name == ui->uname)
+						continue;
 					name_list.push_back(name);
 					status_list.push_back("offline");
 					if (ui->user_map.find(name) == ui->user_map.end())
