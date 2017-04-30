@@ -56,7 +56,7 @@ struct Auth_message{
 				"\"unread_list\":[\n";
 			if(status == 1){
 				for (int i = 0; i < user_map[receiver].unread_list.size(); ++i){
-					s+= "\t\"" + to_string(i) + "\":\"" + user_map[receiver].unread_list[i].to_str() + "\""; 
+					s+= "\t" + user_map[receiver].unread_list[i].to_str(); 
 					if(i != user_map[receiver].unread_list.size() - 1)
 						s+= ",";
 					s+="\n";
@@ -80,7 +80,7 @@ struct Auth_message{
 			int count_online = 0;
 			for (auto it = online_users.begin(); it!=online_users.end(); ++it){
 				count_online++;
-				s+= "\t\"" + to_string(count_online) + "\":\"" + *it + "\"";
+				s+= "\t\""+ *it + "\"";
 				if(online_users.size()!=count_online)
 					s+= ",";
 				s+="\n";		
@@ -90,7 +90,7 @@ struct Auth_message{
 			for (auto it = user_map.begin(); it!=user_map.end(); ++it){
 				if(online_users.count(it->first)==0){
 					count_offline++;
-					s+= "\t\"" + to_string(count_offline) + "\":\"" + it->first + "\"";
+					s+= "\t\"" + it->first + "\"";
 					if(count_offline != user_map.size() - online_users.size())
 						s+= ",\n";
 					s+= "\n";
