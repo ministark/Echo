@@ -566,9 +566,9 @@ void *CommunicationHandler(void *thread_arg)
          			ui->logged_in  = rec_msg["status"].asBool();
          			ui->auth_ack_received = true;
          			ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
-         			for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-						myfile<<"<"<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
-					}
+     				// for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
+					// 	myfile<<"<"<<rec_msg["unread_list"][i].asString()<<endl;
+					// }
 					myfile.close();
 					ui->update = true;
          		}
@@ -577,12 +577,12 @@ void *CommunicationHandler(void *thread_arg)
          			Auth_message msg(rec_msg);
          			ofstream myfile("./data/online_list.txt", fstream::out);
          			for (int i = 0; i < rec_msg["online_users"].size(); ++i){
-						myfile<<rec_msg["online_users"][to_string(i)].asString()<<endl;
+						myfile<<rec_msg["online_users"][i].asString()<<endl;
 					}
 					myfile.close();
 					ofstream myfile2("./data/offline_list.txt", fstream::out);
 					for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
-						myfile2<<rec_msg["offline_users"][to_string(i)].asString()<<endl;
+						myfile2<<rec_msg["offline_users"][i].asString()<<endl;
 					}
 			        myfile2.close();
 			        debug << "online and offline users updated";
