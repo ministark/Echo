@@ -87,27 +87,27 @@ struct Auth_message{
 			}
 			s+= "\t],\n\"offline_users\":[\n";
 			int count_offline = 0;
-			for (auto it = user_map.begin(); it!=user_map.end(); ++it){
-				if(online_users.count(it->first)==0){
-					count_offline++;
-					s+= "\t\"" + it->first + "\"";
-					if(count_offline != user_map.size() - online_users.size())
-						s+= ",\n";
-					s+= "\n";
-				}		
+				for (auto it = user_map.begin(); it!=user_map.end(); ++it){
+					if(online_users.count(it->first)==0){
+						count_offline++;
+						s+= "\t\"" + it->first + "\"";
+						if(count_offline != user_map.size() - online_users.size())
+							s+= ",\n";
+						s+= "\n";
+					}		
+				}
+				s+="\t]\n}";
+				return s;	
 			}
-			s+="\t]\n}";
-			return s;	
 		}
-	}
-};
+	};
 
-//Authenticate the user
-bool authenticate(string username,string password){
-	return true;
-	for ( auto local_it = user_map.begin(); local_it!= user_map.end(); ++local_it ){
-		if(local_it->first == username and local_it->second.password == password)
-			return true;
+	//Authenticate the user
+	bool authenticate(string username,string password){
+		return true;
+		for ( auto local_it = user_map.begin(); local_it!= user_map.end(); ++local_it ){
+			if(local_it->first == username and local_it->second.password == password)
+				return true;
 	}
 }
 
@@ -120,7 +120,10 @@ int main(){
 	while (!users_file.eof()){
 		string name;
 		users_file >> name;
-		user_map[name] = u[k++];
+		if(name!= ""){
+			cout<<name<<endl;
+			user_map[name] = u[k++];
+		}
 	}
 	users_file.close();
 /*********Data loaded************/
