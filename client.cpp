@@ -91,6 +91,7 @@ struct UI{
 		int i = 0;
 		string template_name,template_line;
 		ifstream template_file;
+		scroll = 0;
 		if (type == 0){
 			template_name = "ui/ui_login.txt";
 			cursor_x = 13;
@@ -98,6 +99,11 @@ struct UI{
 		}
 		else if (type == 1){
 			template_name = "ui/ui_home.txt";
+			cursor_x = 23;
+			cursor_y = 3;
+		}
+		else if (type == 2){
+			template_name = "ui/ui_chat.txt";
 			cursor_x = 23;
 			cursor_y = 3;
 		}
@@ -109,7 +115,8 @@ struct UI{
 		}
 		template_file.close();
 	}
-	void edit_display(int x,int y,string s){
+	void edit_display(int x,int y,string s)
+	{
 		for (int i=0; i<s.length(); i++)
 			display[x][i+y] = s[i];
 	}
@@ -157,8 +164,49 @@ void *Display(void *thread_arg)
 			else if (ui->type == 2) // Chat Window
 			{
 				// Check Notification Bar
+				ofstream debug_chat("debug_chat.txt");
+				for (int j=7; j<22; j++)
+					ui->edit_display(j,1,"                                                                              ");
+				string line;
+				vector <string> line_list;
+				ifstream myfile("./chat/test.echo");
+				int start;
+				while (getline(myfile,line))
+					line_list.push_back(line);
+				debug_chat << "stored line list" << endl;
+				int list_len = line_list.size(),lk = 21, str_line = 0;
+				for (int j = list_len - 1; j >= 0; j--)
+				{
+					if(lk-((line_list[j].length()-1)/50)+1  < 7) 
+					{
+						lk -= ((line_list[j].length()-1)/50)+1;
+						str_line = j+1;
+						break;
+					}
+				}
+				debug_chat << "calculated str_line" << endl;
+				int ck = 7;
+				for(int j = str_line; str_line < list_len; j++)
+				{
+					debug_chat << line_list[j] << endl;
+					if(line_list[j][0] = '<')
+						start = 26;
+					else
+						start = 4;
+					int line_len = line_list[j].length();
+					line =  line_list[j].substr(1);
+					while (line_len > 0 and ck < 22)
+					{
+						ui->edit_display(ck,start,line.substr(0,min(50,line_len)));
+						line_len -= min(50,line_len);
+						if (line_len > 0)
+							line = line.substr(50);
+						ck++;
+					}
+					if (ck <= 22)
+						break;
+				}
 				// Process messages from user->messages and paste it in display
-
 			}
 			RefreshDisplay(ui->display);
 			ui->update = false;
@@ -207,11 +255,13 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 		
 		if(command.substr(0,4) == "chat") {
 			command = command.substr(5);
-			debug<<command<<endl;
-			map<string,int>::iterator it = ui->user_map.find(command);
-			if (it == ui->user_map.end()) return;
+			debug<< command <<endl;
+			auto it = ui->user_map.find(command);
+			if (it == ui->user_map.end()) 
+				return;
 			ui->recipient = ui->user_list[it->second];
 			ui->type = 2;
+			ui->load_ui();
 			ui->update = true;
 			debug<<"ui to be updated"<<endl;
 		}
@@ -242,7 +292,7 @@ void ProcessInput(UI *ui,int self_client_sock_fd)
 
 void *InputHandler(void *thread_arg)
 {
-	this_thread::sleep_for(chrono::milliseconds(1000));
+	this_thread::sleep_for(chrono::milliseconds(100));
 	/*******Connecting to actual server*********/
 			//ofstream output_file("client_comm_log.txt");
 			struct addrinfo hints1, *servinfo1, *p1;
@@ -510,7 +560,7 @@ int main()
 	UI ui;
 	ifstream testhome_file,testchat_file;
 	testhome_file.open("data/online_list.txt");
-	int k = 0;
+
 	/*******Connecting to actual server*********/
 	ofstream output_file("client_comm_log.txt");
 		struct addrinfo hints, *servinfo, *p;
@@ -555,7 +605,7 @@ int main()
 	/*******Connected********my_sock_fd*/
 
 	/*******Complete the connection for other thread*********/
-		int error_code = 0;
+		int error_code = 0,k = 0;
 		int listener_fd = get_listner(LISTEN_PORT,error_code);
 		if(listener_fd == -1)
 			exit(error_code);
