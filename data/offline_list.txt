@@ -9,7 +9,7 @@ seventeen
 twentyeight
 asdllasa
 eleven
-thiOék rtytwo
+thi_ô≠ortytwo
 twelve
 thirtyfour
 ten
@@ -28,6 +28,6 @@ twentyseven
 twentythree
 twenty
 bharatk
-tOék wentyone
+t_ô≠owentyone
 ronaldo
 twentytwo

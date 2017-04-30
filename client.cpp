@@ -575,47 +575,30 @@ void *CommunicationHandler(void *thread_arg)
          			Auth_message msg(rec_msg);
          			ui->logged_in  = rec_msg["status"].asBool();
          			ui->auth_ack_received = true;
-<<<<<<< HEAD
-         			ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
-     				// for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-					// 	myfile<<"<"<<rec_msg["unread_list"][i].asString()<<endl;
-					// }
-					myfile.close();
-=======
+
 					// ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
 					// for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
 					// 	myfile<<"<"<<rec_msg["unread_list"][to_string(i)].asString()<<endl;
 					// }
 					// myfile.close();
->>>>>>> fixing
 					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 4 ){
          			debug << data << endl;
          			Auth_message msg(rec_msg);
-<<<<<<< HEAD
-         			ofstream myfile("./data/online_list.txt", fstream::out);
-         			for (int i = 0; i < rec_msg["online_users"].size(); ++i){
+					
+					ofstream myfile("./data/online_list.txt", fstream::out);
+					for (int i = 0; i < rec_msg["online_users"].size(); ++i){
 						myfile<<rec_msg["online_users"][i].asString()<<endl;
 					}
 					myfile.close();
+					
 					ofstream myfile2("./data/offline_list.txt", fstream::out);
 					for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
 						myfile2<<rec_msg["offline_users"][i].asString()<<endl;
 					}
-			        myfile2.close();
-=======
-					// ofstream myfile("./data/online_list.txt", fstream::out);
-					// for (int i = 0; i < rec_msg["online_users"].size(); ++i){
-					// 	myfile<<rec_msg["online_users"][to_string(i)].asString()<<endl;
-					// }
-					// myfile.close();
-					// ofstream myfile2("./data/offline_list.txt", fstream::out);
-					// for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
-					// 	myfile2<<rec_msg["offline_users"][to_string(i)].asString()<<endl;
-					// }
-					// myfile2.close();
->>>>>>> fixing
+					myfile2.close();
+			        
 			        debug << "online and offline users updated";
 			        ui -> update = true;
          		}
