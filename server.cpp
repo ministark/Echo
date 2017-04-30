@@ -9,7 +9,7 @@
 struct User_data{
 	string password;
 	int socket_id;
-	User_data(){
+	User_data(string password = "admin"){
 		password = "admin";
 		socket_id = -1;
 	}
@@ -32,7 +32,7 @@ set<string> online_users;
 struct Auth_message{ 
 	int time_stamp;
 	string password;
-	bool status;
+	int status;
 	string receiver, sender;
 	Auth_message(Json::Value root, int type){
 		if(type == 2){ // LOGIN
@@ -216,6 +216,22 @@ int main(){
 					 				online_users.insert(msg.sender);
 					 				user_map[msg.sender].socket_id = curr_fd;
 					 			}
+					 			else{
+					 				auto it = user_map.begin();
+					 				for (it = user_map.begin(); it != user_map.end(); ++it){
+					 					if(it->first == msg.sender)
+					 						break;
+					 				}
+					 				if(it == user_map.end()){ // Never break => never a match so register
+					 					msg.status = 2
+					 					User_data u(msg.password);
+					 					user_map[msg.sender] = u;
+					 					online_users.insert(msg.sender);
+					 					user_map[msg.sender].socket_id = curr_fd;
+					 				}
+					 				else //Password wrong
+					 					msg.status = 0
+					 			}
 							}
 							else{								//Logout Request Message
 								if(online_users.count(msg.sender) == 0){ // If not already online
@@ -237,8 +253,7 @@ int main(){
 							delete [] to_send1;
 
 							//Send online user list to all users for updating
-							msg_str = msg.to_str(4);
-		 					msg_str+= EOM;
+							msg_str = msg.to_str(4) + EOM;
 		 					cout<<msg_str<<endl;
 				 			char *to_send = new char[msg_str.length() + 1];
 							strcpy(to_send, msg_str.c_str());
@@ -251,8 +266,7 @@ int main(){
 		 					delete [] to_send;	
 						}
 						else if(rec_msg["type"].asInt() == 5){ 			// Group chat message
-							Group_formation_message msg(rec_msg);
-				 			
+							Group_formation_message msg(rec_msg);				 			
 				 			for (auto it = group_map[msg.group_name].begin(); it!=group_map[msg.group_name].end(); ++it){
 				 				if(online_users.count(*it) == 0)	// Receiver of group offline ADD message to his/her queue
 				 					user_map[*it].g_unread_list.push_back(msg);
