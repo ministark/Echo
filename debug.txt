@@ -1,0 +1,299 @@
+TOTO :0receiving data from server 
+YOYO : {
+"type": 2,
+"time_stamp": 1234,
+"status": 1,
+"unread_list":[
+	{
+"type": 1,
+"time_stamp": 1234,
+"receiver":"messi",
+"sender":"rishshah",
+"data":"asdasfasf"
+},
+	{
+"type": 1,
+"time_stamp": 1234,
+"receiver":"messi",
+"sender":"rishshah",
+"data":"asfasdfasdf"
+}¯Ç`G,
+	{
+"type": 1,
+"time_stamp": 1234,
+"receiver":"messi",
+"sender":"rishshah",
+"data":"asfsdfasf"
+}
+	]
+}
+{
+"type": 2,
+"time_stamp": 1234,
+"status": 1,
+"unread_list":[
+	{
+"type": 1,
+"time_stamp": 1234,
+"receiver":"messi",
+"sender":"rishshah",
+"data":"asdasfasf"
+},
+	{
+"type": 1,
+"time_stamp": 1234,
+"receiver":"messi",
+"sender":"rishshah",
+"data":"asfasdfasdf"
+}¯Ç`G,
+	{
+"type": 1,
+"time_stamp": 1234,
+"receiver":"messi",
+"sender":"rishshah",
+"data":"asfsdfasf"
+}
+	]
+}
+receiving data from server 
+YOYO : {
+"type": 4,
+"time_stamp": 1234,
+"online_users":[
+	"messi",
+	"rishshah"
+	],
+"offline_users":[
+	"",
+
+	"thirtythree",
+
+	"thirtyone",
+
+	"twentysix",
+
+	"twentyfive",
+
+	"twentyfour",
+
+	"fourteen",
+
+	"seventeen",
+
+	"twentyeight",
+
+	"asdllasa",
+
+	"eleven",
+
+	"thi¯Ç`Grtytwo",
+
+	"twelve",
+
+	"thirtyfour",
+
+	"ten",
+
+	"harshdepal",
+
+	"asdsad",
+
+	"sourabh",
+
+	"thirteen",
+
+	"fifteen",
+
+	"nine",
+
+	"sixteen",
+
+	"eighteen",
+
+	"twentynine",
+
+	"nineteen",
+
+	"thirty",
+
+	"twentyseven",
+
+	"twentythree",
+
+	"twenty",
+
+	"bharatk",
+
+	"t¯Ç`Gwentyone",
+
+	"ronaldo",
+
+	"twentytwo"
+	]
+}
+{
+"type": 4,
+"time_stamp": 1234,
+"online_users":[
+	"messi",
+	"rishshah"
+	],
+"offline_users":[
+	"",
+
+	"thirtythree",
+
+	"thirtyone",
+
+	"twentysix",
+
+	"twentyfive",
+
+	"twentyfour",
+
+	"fourteen",
+
+	"seventeen",
+
+	"twentyeight",
+
+	"asdllasa",
+
+	"eleven",
+
+	"thi¯Ç`Grtytwo",
+
+	"twelve",
+
+	"thirtyfour",
+
+	"ten",
+
+	"harshdepal",
+
+	"asdsad",
+
+	"sourabh",
+
+	"thirteen",
+
+	"fifteen",
+
+	"nine",
+
+	"sixteen",
+
+	"eighteen",
+
+	"twentynine",
+
+	"nineteen",
+
+	"thirty",
+
+	"twentyseven",
+
+	"twentythree",
+
+	"twenty",
+
+	"bharatk",
+
+	"t¯Ç`Gwentyone",
+
+	"ronaldo",
+
+	"twentytwo"
+	]
+}
+online and offline users updatedcommand
+rishshah
+ui to be updated
+receiving data from server 
+YOYO : 
+atk",
+
+	"tÏæ%œwentyone",
+
+	"ronaldo",
+
+	"twentytwo"
+	]
+}
+{
+"type": 4,
+"time_stamp": 1234,
+"online_users":[
+	"messi",
+	"rishshah"
+	],
+"offline_users":[
+	"",
+
+	"thirtythree",
+
+	"thirtyone",
+
+	"twentysix",
+
+	"twentyfive",
+
+	"twentyfour",
+
+	"fourteen",
+
+	"seventeen",
+
+	"twentyeight",
+
+	"asdllasa",
+
+	"eleven",
+
+	"thiÏæ%œrtytwo",
+
+	"twelve",
+
+	"thirtyfour",
+
+	"ten",
+
+	"harshdepal",
+
+	"asdsad",
+
+	"sourabh",
+
+	"thirteen",
+
+	"fifteen",
+
+	"nine",
+
+	"sixteen",
+
+	"eighteen",
+
+	"twentynine",
+
+	"nineteen",
+
+	"thirty",
+
+	"twentyseven",
+
+	"twentythree",
+
+	"twenty",
+
+	"bharatk",
+
+	"tÏæ%œwentyone",
+
+	"ronaldo",
+
+	"twentytwo"
+	]
+}
+online and offline users updatedreceiving data from server 
+YOYO : 
