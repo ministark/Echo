@@ -609,19 +609,12 @@ void *CommunicationHandler(void *thread_arg)
          			ui->auth_ack_received = true;
 
 					for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-<<<<<<< HEAD
-						ofstream myfile("./chat/"+rec_msg["unread_list"][i].get("sender","XX").asString() +".echo",fstream::out|fstream::app);
-						myfile<<"<"<<rec_msg["unread_list"][i].get("data","FO").asString() <<endl;
-						myfile.close();
-					}
-					
-=======
+
 						debug<<rec_msg["unread_list"][i].get("sender","XXX").asString()<<endl;
 						ofstream myfile("./chat/"+rec_msg["unread_list"][i].get("sender","XXX").asString()+".echo",fstream::out|fstream::app);
 						myfile<<"<"<<rec_msg["unread_list"][i].get("data","------------------------").asString()<<endl;
 						myfile.close();
 					}
->>>>>>> 871b9b04c73e4df2d2f417b1235ed620c7b6c1ea
 					ui->update = true;
          		}
          		else if(rec_msg["type"].asInt() == 4 ){
