@@ -603,7 +603,7 @@ void *CommunicationHandler(void *thread_arg)
          			ui->auth_ack_received = true;
 
 					for (int i = 0; i < rec_msg["unread_list"].size(); ++i){
-						ofstream myfile("./chat/"+msg.sender+".echo",fstream::out|fstream::app);
+						ofstream myfile("./chat/"+rec_msg["unread_list"][i].get("sender","XX").asString() +".echo",fstream::out|fstream::app);
 						myfile<<"<"<<rec_msg["unread_list"][i].get("data","FO").asString() <<endl;
 						myfile.close();
 					}
