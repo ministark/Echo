@@ -1,11 +1,11 @@
-echo: server.o client.o 
+echo: server client 
 	
-server.o: server.cpp utils.cpp utils.h 
-	g++ -std=c++11 -I ./jsoncpp/dist/ server.cpp utils.cpp ./jsoncpp/dist/jsoncpp.cpp -o server.o
+server: server.cpp utils.cpp utils.h 
+	g++ -std=c++11 -I ./jsoncpp/dist/ server.cpp utils.cpp ./jsoncpp/dist/jsoncpp.cpp -o server
 
-client.o: client.cpp utils.cpp utils.h 
-	g++ -std=c++11 -I ./jsoncpp/dist/ client.cpp  utils.cpp ./jsoncpp/dist/jsoncpp.cpp -lcurses -pthread -o client.o
+client: client.cpp utils.cpp utils.h 
+	g++ -std=c++11 -I ./jsoncpp/dist/ client.cpp  utils.cpp ./jsoncpp/dist/jsoncpp.cpp -lcurses -pthread -o echo
 
 .PHONY: clean
 clean:
-	rm -f *.txt *.o
+	rm -f *.txt echo server
