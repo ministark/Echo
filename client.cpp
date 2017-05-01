@@ -150,9 +150,6 @@ void *Display(void *thread_arg)
 			}
 			else if (ui->type == 1) // Home 
 			{
-				ui->edit_display(2,3,"                ");
-				ui->edit_display(2,3,ui->uname);
-				ui->edit_display(2,72,to_string(ui->online));
 				ui->online = 0;
 				ifstream online_file("./data/online_list.txt"),offline_file("./data/offline_list.txt");
 				string name,status;vector <string> name_list,status_list;
@@ -206,12 +203,12 @@ void *Display(void *thread_arg)
 					ui->edit_display(line_x,50,status);
 					line_x++;
 				}
+				ui->edit_display(2,3,"                ");
+				ui->edit_display(2,3,ui->uname);
+				ui->edit_display(2,72,to_string(ui->online));
 			}
 			else if (ui->type == 2) // Chat Window
 			{
-				ui->edit_display(2,3,"                ");
-				ui->edit_display(2,3,ui->recipient.name);
-				ui->edit_display(2,72,to_string(ui->online));
 				for (int j=7; j<22; j++)
 					ui->edit_display(j,1,"                                                                              ");
 				string line;
@@ -259,6 +256,9 @@ void *Display(void *thread_arg)
 					if (ck >= 22)
 						break;
 				}
+				ui->edit_display(2,3,"                ");
+				ui->edit_display(2,3,ui->recipient.name);
+				ui->edit_display(2,72,to_string(ui->online));
 				myfile.close();
 			}
 			RefreshDisplay(ui->display);
