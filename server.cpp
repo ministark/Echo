@@ -1,13 +1,14 @@
 #include "serverutils.h"
 #include <fstream> 			// ouput to files for debug
 #include <unordered_map> 	// storing all users
-
+#include <time.h>
 #define LISTEN_PORT "9034"  // Port on which server will listen for incomming connections
 #define EOM "```"
 
 //Stores password, socket ID, unread messages of user
 struct User_data{
 	string password;
+	string last_seen;
 	int socket_id;
 	User_data(string password = "admin"){
 		password = password;

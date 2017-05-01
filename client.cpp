@@ -10,6 +10,7 @@
 #include <mutex>
 #include <map>
 #include "utils.h"
+#include <time.h>
 using namespace std;
 
 #define ENTER_KEY 13
@@ -24,11 +25,16 @@ mutex mtx_user_list,mtx_display,mtx_comm,mtx_file;
 ofstream debug("debug.txt");
 	
 struct Auth_message{ // all message types sent by server
-	int time_stamp;
+	string time_stamp;
 	bool status;
 	string sender, password;
-	Auth_message(string username, string passwd = "NULL",int time=1234){
-		time_stamp = time;
+	Auth_message(string username, string passwd = "NULL"){
+		time_t rawtime;
+		struct tm * timeinfo;
+		time ( &rawtime );
+	 	timeinfo = localtime ( &rawtime );
+	  	time_stamp = asctime (timeinfo);
+	  	time_stamp = time_stamp.substr(11,8);
 		sender = username;
 		password = passwd;
 	}
