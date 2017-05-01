@@ -37,7 +37,7 @@ struct Auth_message{ // all message types sent by server
 		password = passwd;
 	}
 	Auth_message(Json::Value root){
-		time_stamp = root["time_stamp"].asInt();
+		time_stamp = root["time_stamp"].asString();
 		status = root["status"].asBool();
 	}
 	string to_str(int type){
