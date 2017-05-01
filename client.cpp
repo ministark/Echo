@@ -544,9 +544,12 @@ void *InputHandler(void *thread_arg)
 			else
 			{
 				ProcessInput(ui,self_client_sock_fd);
-				for (int i=0; i<80; i++)
-					ui->display[ui->cursor_x][i] = ' ';
-				ui->edit_display(ui->cursor_x,0,"->");
+				if (ui->type != 0)
+				{	
+					for (int i=0; i<80; i++)
+						ui->display[ui->cursor_x][i] = ' ';
+					ui->edit_display(ui->cursor_x,0,"->");
+				}
 				ui->update = true;
 				ui->cursor_y = 3;
 			}
