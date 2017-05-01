@@ -31,19 +31,19 @@ set<string> online_users;
 
 //Message data of all useful messages sent and received by server
 struct Auth_message{ 
-	int time_stamp;
+	string time_stamp;
 	string password;
 	int status;
 	string receiver, sender;
 	Auth_message(Json::Value root, int type){
 		if(type == 2){ // LOGIN
-			time_stamp = root["time_stamp"].asInt();
+			time_stamp = root["time_stamp"].asString();
 			password = root["password"].asString();
 			sender = root["sender"].asString();
 			receiver = sender;
 		}
 		else if (type == 3){ // LOGOUT
-			time_stamp = root["time_stamp"].asInt();
+			time_stamp = root["time_stamp"].asString();
 			sender = root["sender"].asString();
 			receiver = sender;
 		}
@@ -239,7 +239,7 @@ int main(){
 					 			}
 							}
 							else{								//Logout Request Message
-								if(online_users.count(msg.sender) == 0){ // If not already online
+								if(online_users.count(msg.sender) != 0){ // If not already online
 				 					msg.status = 1;
 				 					online_users.erase(msg.sender);	
 				 				}
