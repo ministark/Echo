@@ -270,6 +270,7 @@ void *Display(void *thread_arg)
 
 int authenticate(UI * ui,string username,string password)
 {
+	ui->auth_ack_received = false;
 	Auth_message msg(username,password);
 	string data = msg.to_str(2) + EOM;
 	char *to_send = new char[data.length() + 1];
@@ -280,8 +281,9 @@ int authenticate(UI * ui,string username,string password)
         exit(1);
     }
     delete [] to_send;
-    while(!ui->auth_ack_received);
-   		return ui->logged_in;
+    while(!ui->auth_ack_received)
+   		this_thread::sleep_for(chrono::milliseconds(50));
+   	return ui->logged_in;
 }	
 
 void ProcessInput(UI *ui,int self_client_sock_fd)
@@ -460,6 +462,8 @@ void *InputHandler(void *thread_arg)
 				else if (password_read)
 				{
 					int auth_status = authenticate(ui,username,password);
+					debug << "auth_status = " << auth_status << endl;
+					debug << "username = " << username << " password = " << password << endl;
 					if (auth_status == 1)
 					{
 						ui->uname = username;
@@ -472,8 +476,6 @@ void *InputHandler(void *thread_arg)
 					}
 					else if (auth_status == 0)
 					{
-						username = "";
-						password = "";
 						ui->cursor_x = 13;
 						ui->cursor_y = 39;
 						ui->edit_display(13,39,"                ");
