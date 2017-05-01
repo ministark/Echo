@@ -10,8 +10,8 @@ struct User_data{
 	string password;
 	string last_seen;
 	int socket_id;
-	User_data(string password = "admin"){
-		password = password;
+	User_data(string pwd = "admin"){
+		password = pwd;
 		last_seen = "offline";
 		socket_id = -1;
 	}
