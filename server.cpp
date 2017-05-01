@@ -12,6 +12,7 @@ struct User_data{
 	int socket_id;
 	User_data(string password = "admin"){
 		password = password;
+		last_seen = "offline";
 		socket_id = -1;
 	}
 	void update_last_seen(){

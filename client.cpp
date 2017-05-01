@@ -550,10 +550,6 @@ void *InputHandler(void *thread_arg)
 					for (int i=0; i<80; i++)
 						ui->display[ui->cursor_x][i] = ' ';
 					ui->edit_display(ui->cursor_x,0,"->");
-<<<<<<< HEAD
-=======
-					
->>>>>>> 9fa62c294eb7393729716aef3adda30c5a7224f8
 					ui->update = true;
 					ui->cursor_y = 3;
 				}
