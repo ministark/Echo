@@ -14,6 +14,14 @@ struct User_data{
 		password = password;
 		socket_id = -1;
 	}
+	void update_last_seen(){
+		time_t rawtime;
+		struct tm * timeinfo;
+		time ( &rawtime );
+	 	timeinfo = localtime ( &rawtime );
+	  	last_seen = asctime (timeinfo);
+	  	last_seen = last_seen.substr(11,8);
+	}
 	vector<Chat_message> unread_list;
 	vector<Group_formation_message> g_unread_list;
 };
@@ -241,6 +249,7 @@ int main(){
 							else{								//Logout Request Message
 								if(online_users.count(msg.sender) != 0){ // If not already online
 				 					msg.status = 1;
+				 					user_map[msg.sender].update_last_seen();
 				 					online_users.erase(msg.sender);	
 				 				}
 							}
