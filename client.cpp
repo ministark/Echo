@@ -18,10 +18,8 @@ using namespace std;
 #define UPPER_KEY 127
 #define SERVER_PORT "9034"  // port we're listening on
 #define MAXDATASIZE 256 	// max number of bytes we can get at once 
-
 #define EOM "```"
 
-mutex mtx_user_list,mtx_display,mtx_comm,mtx_file;
 ofstream debug("debug.txt");
 	
 struct Auth_message{ // all message types sent by server
@@ -76,7 +74,7 @@ struct UI{
 	int logged_in;
 	vector <User> user_list;
 	map<string,int> user_map;
-	int number_online,unread_messages;
+	int online,unread_messages;
 	int my_sock_fd,listener_fd;
 	User recipient; //The person whom we are talking with
 	string uname;
@@ -87,7 +85,7 @@ struct UI{
 		update = true;
 		logged_in = false;
 		exit_program = false;
-		number_online = 1;
+		online = 0;
 		unread_messages = 0;
 		scroll = 0;
 		maxscroll = 0;
@@ -154,6 +152,8 @@ void *Display(void *thread_arg)
 			{
 				ui->edit_display(2,3,"                ");
 				ui->edit_display(2,3,ui->uname);
+				ui->edit_display(2,72,to_string(ui->online));
+				ui->online = 0;
 				ifstream online_file("./data/online_list.txt"),offline_file("./data/offline_list.txt");
 				string name,status;vector <string> name_list,status_list;
 				int ls = ui->user_list.size();
@@ -174,6 +174,7 @@ void *Display(void *thread_arg)
 						int j = ui->user_map[name];
 						ui->user_list[j].status = status;
 					}
+					ui->online++;
 				}
 				while (!offline_file.eof())
 				{
@@ -210,7 +211,7 @@ void *Display(void *thread_arg)
 			{
 				ui->edit_display(2,3,"                ");
 				ui->edit_display(2,3,ui->recipient.name);
-				ofstream debug_chat("debug_chat.txt");
+				ui->edit_display(2,72,to_string(ui->online));
 				for (int j=7; j<22; j++)
 					ui->edit_display(j,1,"                                                                              ");
 				string line;
@@ -239,7 +240,6 @@ void *Display(void *thread_arg)
 						start = 3;
 					int line_len = line_list[j].length();
 					line = line_list[j].substr(1);
-					debug_chat << line << endl;
 					if (line_len <= 50 and start == 28)
 					{
 						ui->edit_display(ck,79-line_len,line);
@@ -250,7 +250,6 @@ void *Display(void *thread_arg)
 						while (line_len > 0 and ck < 22)
 						{
 							ui->edit_display(ck,start,line.substr(0,min(50,line_len)));
-							debug_chat << line.substr(0,min(50,line_len)) << endl;
 							line_len -= min(50,line_len);
 							if (line_len > 0)
 								line = line.substr(50);
