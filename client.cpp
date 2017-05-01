@@ -67,7 +67,7 @@ struct UI{
 	bool update,exit_program;
 	bool auth_ack_received;
 	string LISTEN_PORT;
-	bool logged_in;
+	int logged_in;
 	vector <User> user_list;
 	map<string,int> user_map;
 	int number_online,unread_messages;

@@ -10,7 +10,7 @@ struct User_data{
 	string password;
 	int socket_id;
 	User_data(string password = "admin"){
-		password = "admin";
+		password = password;
 		socket_id = -1;
 	}
 	vector<Chat_message> unread_list;
@@ -102,13 +102,16 @@ struct Auth_message{
 		}
 	};
 
-	//Authenticate the user
-	bool authenticate(string username,string password){
-		return true;
-		for ( auto local_it = user_map.begin(); local_it!= user_map.end(); ++local_it ){
-			if(local_it->first == username and local_it->second.password == password)
-				return true;
+//Authenticate the user
+bool authenticate(string username,string password){
+	for ( auto local_it = user_map.begin(); local_it!= user_map.end(); ++local_it ){
+		cout << local_it->first << " ::: " << local_it->second.password << endl;
+		if(local_it->first == username and local_it->second.password == password){
+			cout << local_it->first << " ::: " << local_it->second.password << endl;
+			return true;
+		}
 	}
+	return false;
 }
 
 int main(){
@@ -211,6 +214,7 @@ int main(){
 				 			msg.status = 0;
 
 				 			if(rec_msg["type"].asInt() == 2){	//Login Request Message
+				 				cout << "SS :" << msg.sender << " PP :" << msg.password<<endl;
 					 			if(authenticate(msg.sender,msg.password)){ // authenticate USER
 					 				msg.status = 1;
 					 				online_users.insert(msg.sender);
@@ -223,14 +227,14 @@ int main(){
 					 						break;
 					 				}
 					 				if(it == user_map.end()){ // Never break => never a match so register
-					 					msg.status = 2
-					 					User_data u(msg.password);
-					 					user_map[msg.sender] = u;
+					 					msg.status = 2;
+					 					user_map[msg.sender] = User_data();
+					 					user_map[msg.sender].password = msg.password;
 					 					online_users.insert(msg.sender);
 					 					user_map[msg.sender].socket_id = curr_fd;
 					 				}
 					 				else //Password wrong
-					 					msg.status = 0
+					 					msg.status = 0;
 					 			}
 							}
 							else{								//Logout Request Message
