@@ -1,6 +1,6 @@
 #include "utils.h"
 #include <fstream> 			// ouput to files for debug
-#include <unordered_map> 	// storing all users
+#include <unordered_map> 	// storing all 
 #include <time.h>
 #define LISTEN_PORT "9034"  // Port on which server will listen for incomming connections
 #define EOM "```"
@@ -99,7 +99,8 @@ struct Auth_message{
 				for (auto it = user_map.begin(); it!=user_map.end(); ++it){
 					if(online_users.count(it->first)==0){
 						count_offline++;
-						s+= "\t\"" + it->first + "\"";
+						s+= "\t{" + assign("user",it->first) + ",\n" +
+							assign("last_seen",it->second.last_seen) + "\n}";
 						if(count_offline != user_map.size() - online_users.size())
 							s+= ",\n";
 						s+= "\n";

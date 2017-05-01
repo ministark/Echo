@@ -495,6 +495,8 @@ void *InputHandler(void *thread_arg)
 						ui->load_ui();
 						ui->update = true;
  					}
+ 					username = "";
+ 					password = "";
 				}
 			}
 
@@ -549,9 +551,10 @@ void *InputHandler(void *thread_arg)
 					for (int i=0; i<80; i++)
 						ui->display[ui->cursor_x][i] = ' ';
 					ui->edit_display(ui->cursor_x,0,"->");
+					
+					ui->update = true;
+					ui->cursor_y = 3;
 				}
-				ui->update = true;
-				ui->cursor_y = 3;
 			}
 		}
 		//mtx_display.unlock();
@@ -671,7 +674,7 @@ void *CommunicationHandler(void *thread_arg)
 					
 					ofstream myfile2("./data/offline_list.txt", fstream::out);
 					for (int i = 0; i < rec_msg["offline_users"].size(); ++i){
-						myfile2<<rec_msg["offline_users"][i].asString()<<endl;
+						myfile2<<rec_msg["offline_users"][i]["user"].asString() << " " << rec_msg["offline_users"][i]["last_seen"].asString()<<endl;
 					}
 					myfile2.close();
 			        
