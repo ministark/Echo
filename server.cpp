@@ -44,6 +44,14 @@ struct Auth_message{
 	string password;
 	int status;
 	string receiver, sender;
+	Auth_message(){
+		time_t rawtime;
+		struct tm * timeinfo;
+		time ( &rawtime );
+	 	timeinfo = localtime ( &rawtime );
+	  	time_stamp = asctime (timeinfo);
+	  	time_stamp = time_stamp.substr(11,8);
+	}
 	Auth_message(Json::Value root, int type){
 		if(type == 2){ // LOGIN
 			time_stamp = root["time_stamp"].asString();
@@ -192,12 +200,29 @@ int main(){
  				   	
 				   	if(nbytes == 0){ 		// Client wants to close the connection
 				   		for(auto it = user_map.begin(); it!= user_map.end(); ++it){ //Make the use offline
-				   			if(it->second.socket_id == curr_fd)
+				   			if(it->second.socket_id == curr_fd){
+				   				it->second.update_last_seen();
 				   				online_users.erase(it->first);
+				   			}
 				   		}
 				   		close(curr_fd);			// close the curr socket 
 						FD_CLR(i, &master_fds); // remove from master set
 						printf("selectserver: socket %d hung up\n", curr_fd);
+
+						//Send online user list to all users for updating
+						Auth_message msg;
+						string msg_str = msg.to_str(4) + EOM;
+	 					cout<<msg_str<<endl;
+			 			char *to_send = new char[msg_str.length() + 1];
+						strcpy(to_send, msg_str.c_str());
+	 			
+	 					for (auto it = online_users.begin(); it != online_users.end(); ++it){
+	 						if (send(user_map[*it].socket_id, to_send, msg_str.length() + 1, 0) == -1) {
+								perror("send");
+							}
+	 					}
+	 					delete [] to_send;	
+
 				   	}
 				   	else if(nbytes < 0) 		// Error in receiveing
 				   		perror("recv");
