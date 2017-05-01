@@ -159,11 +159,11 @@ void *Display(void *thread_arg)
 				int ls = ui->user_list.size();
 				while (!online_file.eof())
 				{
-					online_file >> name;
+					online_file >> name;status = "online";
 					if ((!name_list.empty() and name_list.back() == name) or name == ui->uname)
 						continue;
 					name_list.push_back(name);
-					status_list.push_back("online");
+					status_list.push_back(status);
 					if (ui->user_map.find(name) == ui->user_map.end())
 					{
 						ui->user_map[name] = ls++;
@@ -178,11 +178,11 @@ void *Display(void *thread_arg)
 				}
 				while (!offline_file.eof())
 				{
-					offline_file >> name;
+					offline_file >> name >> status;
 					if ((!name_list.empty() and name_list.back() == name) or name == ui->uname)
 						continue;
 					name_list.push_back(name);
-					status_list.push_back("offline");
+					status_list.push_back(status);
 					if (ui->user_map.find(name) == ui->user_map.end())
 					{
 						ui->user_map[name] = ls++;
@@ -494,6 +494,7 @@ void *InputHandler(void *thread_arg)
 						ui->load_ui();
 						ui->update = true;
  					}
+ 					username = "";password = "";
 				}
 			}
 
@@ -548,9 +549,9 @@ void *InputHandler(void *thread_arg)
 					for (int i=0; i<80; i++)
 						ui->display[ui->cursor_x][i] = ' ';
 					ui->edit_display(ui->cursor_x,0,"->");
+					ui->update = true;
+					ui->cursor_y = 3;
 				}
-				ui->update = true;
-				ui->cursor_y = 3;
 			}
 		}
 		//mtx_display.unlock();
