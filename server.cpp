@@ -24,16 +24,11 @@ struct User_data{
 	  	last_seen = last_seen.substr(11,8);
 	}
 	vector<Chat_message> unread_list;
-	vector<Group_formation_message> g_unread_list;
 };
 
 //Store all users in a hash map	
 typedef unordered_map<string,User_data> t_user_map;
 t_user_map user_map;
-
-//Store all groups in a hash map
-typedef unordered_map<string,set<string> > t_group_map;
-t_group_map group_map;
 
 //Stores set of all online users
 set<string> online_users;
@@ -305,21 +300,6 @@ int main(){
 								}
 		 					}
 		 					delete [] to_send;	
-						}
-						else if(rec_msg["type"].asInt() == 5){ 			// Group chat message
-							Group_formation_message msg(rec_msg);				 			
-				 			for (auto it = group_map[msg.group_name].begin(); it!=group_map[msg.group_name].end(); ++it){
-				 				if(online_users.count(*it) == 0)	// Receiver of group offline ADD message to his/her queue
-				 					user_map[*it].g_unread_list.push_back(msg);
-					 			else{								// Receiver of group online SEND immediately
-					 				char *to_send = new char[data.length() + 1];
-									strcpy(to_send, data.c_str());								
-					 				if (send(user_map[*it].socket_id, to_send, data.length() + 1, 0) == -1) {
-										perror("send");
-									}
-									delete [] to_send;
-								}
-							}
 						}
 					}   
 				}

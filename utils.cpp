@@ -125,32 +125,3 @@ string Chat_message::to_str(){
 		assign("data",data) + "\n}";
 	return s;
 }
-
-
-Group_formation_message::Group_formation_message(Json::Value root){
-	time_stamp = root["time_stamp"].asInt();
-	sender = root["sender"].asString();
-	group_name = root["group_name"].asString();
-	for (int i = 0; i < root["members"].size(); ++i){
-		members.insert(root["members"][to_string(i)].asString());
-	}
-}
-string Group_formation_message::to_str(){//Send to others that they are in the group
-	string s = "{\n";
-	s+= assign("type",5) + ",\n" +
-		assign("time_stamp",time_stamp) + ",\n" +
-		assign("sender",sender) + ",\n" +
-		assign("group_name",group_name) + ",\n" +
-		"\"members\":[\n";
-	int count = 0;
-	for (auto it = members.begin(); it!=members.end(); ++it){
-		count++;
-		s+= "\t\"" + to_string(count) + "\":\"" + *it + "\"";
-		if(members.size()!=count)
-			s+= ",";
-		s+="\n";		
-	}
-	assign("group_name",group_name) + "\n}";
-	s+= "\t]\n}";
-	return s;
-}

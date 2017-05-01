@@ -36,11 +36,3 @@ struct Chat_message{ // peer to peer messages
 	Chat_message(string rcvr, string sndr,string dat);
 	string to_str();
 };
-
-struct Group_formation_message{ // peer to peer messages
-	int time_stamp;
-	string sender, group_name;
-	set<string> members;
-	Group_formation_message(Json::Value root);
-	string to_str();
-};
